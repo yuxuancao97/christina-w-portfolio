@@ -1,8 +1,9 @@
 /* ─────────────────────────────────────────────────────────────
    ALL PORTFOLIO CONTENT LIVES IN THIS FILE.
 
-   Everything below is sample content: names, clients and copy
-   are invented. Replace them with your own.
+   Profile and experience come from Christina's CV. The artwork is
+   still generated placeholders, labelled by where the real work
+   comes from. Replace each with the real piece.
 
    Using your real artwork
    • Poster:          add  image: 'images/posters/my-poster.jpg'
@@ -19,114 +20,129 @@
                sand · mint · oxblood · sky · butter
    ───────────────────────────────────────────────────────────── */
 window.PORTFOLIO = {
+  /* Profile, experience and education come from Christina's CV.
+     Employers are described by industry until she says they can be named.
+     The email is a placeholder. */
   profile: {
     name: 'Christina W',
-    role: 'Graphic designer',
-    location: 'Lisbon, Portugal',
-    availability: 'Booking January 2027',
+    role: 'Visual designer',
+    since: 'Since 2020',
     email: 'hello@example.com',
-    socials: [
-      { label: 'Instagram', url: '#' },
-      { label: 'Behance', url: '#' },
-      { label: 'LinkedIn', url: '#' },
-      { label: 'Download CV', url: '#' }
+    socials: [],
+    bio: 'Visual designer with a degree in Visual Communication Design. Since 2020 she has worked in-house for brands in automotive electronics, fitness and cross-border e-commerce.',
+    experience: [
+      {
+        years: '2023 to 2025', role: 'Graphic Designer', field: 'Automotive electronics',
+        points: [
+          'Responsible for the brand’s visual design and presentation',
+          'Culture wall displays, product brochures, website visuals and social media content',
+          'Materials for domestic and international exhibitions and workshops'
+        ]
+      },
+      {
+        years: '2022 to 2023', role: 'Graphic Designer', field: 'Fitness',
+        points: [
+          'Visual identity system for the company’s fitness sub-brand',
+          'Social media marketing visuals, lightbox posters and brochures',
+          'Event promotion and marketing for directly operated locations',
+          'Sampling and proofs through to final production'
+        ]
+      },
+      {
+        years: '2020 to 2021', role: 'Graphic Designer', field: 'Cross-border e-commerce',
+        points: [
+          'Product imagery and text for the company’s Amazon store',
+          'Packaging: kraft boxes and colour-printed cartons',
+          'Promotional posters and banners for on-platform campaigns'
+        ]
+      }
     ],
-    clients: ['Halle Contemporary', 'Noise Garden Festival', 'Sola Skin', 'Nordlys', 'Kettle & Fern', 'Riverside Run Club']
+    about: [
+      ['Education', ['BA, Visual Communication Design', '2014 to 2018', 'Scholarship in each of the four years']],
+      ['Skills', ['Visual identity', 'Layout and typeface design', 'Packaging design', 'Advertising', 'Photography']],
+      ['Tools', ['Photoshop', 'Illustrator']],
+      ['Languages', ['English, Band 6 certificate']]
+    ]
   },
 
   /* How many posters show before the "Show all" button. */
   postersInitial: 12,
 
+  /* Placeholder slots, grouped by where the real work comes from.
+     Swap each for the real piece: set title, and add image: '…'. */
   posters: [
-    { title: 'Slow Sundays',    client: 'The Depot Jazz Club',   year: '2026', format: '50 × 70 cm, offset',      art: ['orb', 'cobalt'] },
-    { title: 'Form & Void',     client: 'Halle Contemporary',    year: '2026', format: 'A1, screenprint',         art: ['blocks', 'paper'] },
-    { title: 'Noise Garden',    client: 'Noise Garden Festival', year: '2025', format: '50 × 70 cm, offset',      art: ['bands', 'tang'] },
-    { title: 'Type in Motion',  client: 'Kerning Conference',    year: '2025', format: 'A2, two-colour riso',     art: ['glyph', 'noir'] },
-    { title: 'Late Bloom',      client: 'Sunday Flower Market',  year: '2025', format: 'A2, offset',              art: ['dots', 'rose'] },
-    { title: 'Kino Nights',     client: 'Rooftop Cinema Club',   year: '2025', format: '70 × 100 cm, offset',     art: ['rays', 'oxblood'] },
-    { title: 'Paper Moon',      client: 'Little Theatre Co.',    year: '2024', format: 'A1, offset',              art: ['arcs', 'butter'] },
-    { title: 'Analog Days',     client: 'City Record Fair',      year: '2024', format: 'A2, screenprint',         art: ['lines', 'sand'] },
-    { title: 'Salt & Stone',    client: 'Ceramics Biennial',     year: '2024', format: '50 × 70 cm, offset',      art: ['orb', 'mint'] },
-    { title: 'Tide Tables',     client: 'Coastal Film Week',     year: '2024', format: 'A1, offset',              art: ['bands', 'sky'] },
-    { title: 'Second Draft',    client: 'Writers’ Festival',     year: '2023', format: 'A2, offset',              art: ['glyph', 'lilac'] },
-    { title: 'Hello Neighbour', client: 'Open Studios Weekend',  year: '2023', format: 'A3, riso',                art: ['blocks', 'forest'] },
-    { title: 'Colour Theory',   client: 'School of Design',      year: '2023', format: 'A1, screenprint',         art: ['arcs', 'paper'] },
-    { title: 'After Hours',     client: 'Club Vesper',           year: '2023', format: 'A2, fluorescent offset',  art: ['dots', 'noir'] },
-    { title: 'Field Notes',     client: 'Studio Talk Series',    year: '2022', format: 'A2, offset',              art: ['lines', 'cobalt'] },
-    { title: 'Zero Waste Week', client: 'City Council',          year: '2022', format: 'A1, recycled stock',      art: ['rays', 'mint'] }
+    { title: 'Lightbox poster 01',    client: 'Fitness sub-brand',      year: '2022/23', art: ['orb', 'cobalt'] },
+    { title: 'Exhibition poster 01',  client: 'Automotive electronics', year: '2023/25', art: ['blocks', 'paper'] },
+    { title: 'Promo poster 01',       client: 'Amazon store',           year: '2020/21', art: ['bands', 'tang'] },
+    { title: 'Event poster 01',       client: 'Fitness sub-brand',      year: '2022/23', art: ['glyph', 'noir'] },
+    { title: 'Promo poster 02',       client: 'Amazon store',           year: '2020/21', art: ['dots', 'rose'] },
+    { title: 'Workshop poster 01',    client: 'Automotive electronics', year: '2023/25', art: ['rays', 'oxblood'] },
+    { title: 'Lightbox poster 02',    client: 'Fitness sub-brand',      year: '2022/23', art: ['arcs', 'butter'] },
+    { title: 'Exhibition poster 02',  client: 'Automotive electronics', year: '2023/25', art: ['lines', 'sand'] },
+    { title: 'Promo poster 03',       client: 'Amazon store',           year: '2020/21', art: ['orb', 'mint'] },
+    { title: 'Event poster 02',       client: 'Fitness sub-brand',      year: '2022/23', art: ['bands', 'sky'] },
+    { title: 'Brand poster 01',       client: 'Automotive electronics', year: '2023/25', art: ['glyph', 'lilac'] },
+    { title: 'Promo poster 04',       client: 'Amazon store',           year: '2020/21', art: ['blocks', 'forest'] }
   ],
 
   campaigns: [
     {
-      title: 'Open Late',
-      client: 'Halle Contemporary',
-      year: '2026',
-      summary: 'Campaign for a summer of late openings at the museum.',
-      scope: ['Key visual', 'OOH', 'Social toolkit', 'Motion', 'Signage'],
+      title: 'Brand & exhibitions',
+      client: 'Automotive electronics',
+      year: '2023/25',
+      summary: 'Brand visuals for an automotive electronics company, including materials for domestic and international exhibitions and workshops.',
+      scope: ['Exhibition materials', 'Product brochures', 'Culture wall', 'Website visuals', 'Social media content'],
       art: ['rays', 'cobalt'],
       formats: [
-        { label: 'Key visual', ratio: [16, 9] },
-        { label: 'Square post', ratio: [1, 1] },
-        { label: 'Feed', ratio: [4, 5] },
-        { label: 'Story', ratio: [9, 16] },
-        { label: 'Billboard', ratio: [3, 1] }
+        { label: 'Website banner', ratio: [16, 9] },
+        { label: 'Social post', ratio: [1, 1] },
+        { label: 'Brochure cover', ratio: [5, 7] },
+        { label: 'Roll-up banner', ratio: [2, 5] },
+        { label: 'Booth backdrop', ratio: [3, 1] }
       ]
     },
     {
-      title: 'Fresh Daily',
-      client: 'Greenhouse Market',
-      year: '2025',
-      summary: 'Seasonal produce campaign for a neighbourhood grocer.',
-      scope: ['Key visual', 'In-store', 'Social toolkit', 'Packaging stickers'],
-      art: ['blocks', 'forest'],
-      formats: [
-        { label: 'Key visual', ratio: [16, 9] },
-        { label: 'Poster', ratio: [5, 7] },
-        { label: 'Feed', ratio: [4, 5] },
-        { label: 'Square post', ratio: [1, 1] },
-        { label: 'Shelf strip', ratio: [4, 1] }
-      ]
-    },
-    {
-      title: 'Run the River',
-      client: 'Riverside Run Club',
-      year: '2025',
-      summary: 'Identity and launch campaign for a 10K along the waterfront.',
-      scope: ['Key visual', 'OOH', 'Race kit', 'Social toolkit'],
+      title: 'Fitness sub-brand',
+      client: 'Fitness',
+      year: '2022/23',
+      summary: 'Visual identity, marketing visuals and event promotion for a fitness sub-brand and its directly operated locations.',
+      scope: ['Visual identity', 'Lightbox posters', 'Social media visuals', 'Brochures', 'Event promotion'],
       art: ['bands', 'tang'],
       formats: [
         { label: 'Key visual', ratio: [16, 9] },
-        { label: 'Story', ratio: [9, 16] },
+        { label: 'Lightbox poster', ratio: [5, 7] },
+        { label: 'Social post', ratio: [4, 5] },
         { label: 'Square post', ratio: [1, 1] },
-        { label: 'Feed', ratio: [4, 5] },
-        { label: 'Billboard', ratio: [3, 1] }
+        { label: 'Event banner', ratio: [3, 1] }
       ]
     },
     {
-      title: 'The Big Eleven',
-      client: 'Marketplace seasonal sale',
-      year: '2024',
-      summary: 'Sale-event graphics for a homeware brand.',
-      scope: ['Storefront banners', 'Deal badges', 'Listing tiles', 'Email', 'Social ads'],
-      art: ['glyph', 'butter'], glyph: '11',
+      title: 'Amazon store promotions',
+      client: 'Cross-border e-commerce',
+      year: '2020/21',
+      summary: 'Promotional posters and banners for on-platform sales campaigns.',
+      scope: ['Promotional posters', 'Campaign banners', 'Product imagery', 'Packaging'],
+      art: ['glyph', 'butter'], glyph: '%',
       formats: [
-        { label: 'Storefront hero', ratio: [3, 1] },
-        { label: 'Listing tile', ratio: [1, 1] },
-        { label: 'Social ad', ratio: [4, 5] },
+        { label: 'Storefront banner', ratio: [3, 1] },
+        { label: 'Listing image', ratio: [1, 1] },
+        { label: 'Promo poster', ratio: [4, 5] },
         { label: 'Story ad', ratio: [9, 16] },
-        { label: 'Email header', ratio: [2, 1] }
+        { label: 'Banner', ratio: [2, 1] }
       ]
     }
   ],
 
+  /* Placeholder pages: the artwork and the copy inside it are generated samples.
+     Swap each for a real page with  modules: ['images/aplus/…/01.jpg', …]. */
   aplus: [
     {
-      title: 'Glow C Serum',
-      brand: 'Sola Skin',
-      category: 'Beauty',
-      marketplace: 'Amazon Premium A+',
-      year: '2026',
-      summary: 'Launch page for a vitamin C serum.',
+      title: 'Product page 01',
+      brand: 'Amazon store',
+      category: 'Sample layout',
+      marketplace: 'Amazon',
+      year: '2020/21',
+      summary: 'Product imagery and text for an Amazon listing.',
       product: 'bottle', palette: 'apricot', style: 'arcs',
       copy: {
         headline: 'Glow that gets up early.',
@@ -148,12 +164,12 @@ window.PORTFOLIO = {
       }
     },
     {
-      title: 'Ceremonial Matcha',
-      brand: 'Kettle & Fern',
-      category: 'Grocery',
-      marketplace: 'Amazon A+',
-      year: '2025',
-      summary: 'Product page for a stone-ground matcha.',
+      title: 'Product page 02',
+      brand: 'Amazon store',
+      category: 'Sample layout',
+      marketplace: 'Amazon',
+      year: '2020/21',
+      summary: 'Product imagery and text for an Amazon listing.',
       product: 'jar', palette: 'matcha', style: 'orb',
       copy: {
         headline: 'A calmer kind of energy.',
@@ -176,12 +192,12 @@ window.PORTFOLIO = {
       }
     },
     {
-      title: 'Trail Flask 750',
-      brand: 'Nordlys',
-      category: 'Outdoors',
-      marketplace: 'Amazon Premium A+',
-      year: '2025',
-      summary: 'Product page for an insulated bottle.',
+      title: 'Product page 03',
+      brand: 'Amazon store',
+      category: 'Sample layout',
+      marketplace: 'Amazon',
+      year: '2020/21',
+      summary: 'Product imagery and text for an Amazon listing.',
       product: 'can', palette: 'glacier', style: 'lines',
       copy: {
         headline: 'Cold for 24. Hot for 12.',
@@ -204,12 +220,12 @@ window.PORTFOLIO = {
       }
     },
     {
-      title: 'House Blend',
-      brand: 'Dawn Patrol Coffee',
-      category: 'Grocery',
-      marketplace: 'Amazon A+',
-      year: '2024',
-      summary: 'Product page for a specialty roaster’s house blend.',
+      title: 'Product page 04',
+      brand: 'Amazon store',
+      category: 'Sample layout',
+      marketplace: 'Amazon',
+      year: '2020/21',
+      summary: 'Product imagery and text for an Amazon listing.',
       product: 'pouch', palette: 'roast', style: 'dots',
       copy: {
         headline: 'Roasted Monday. Yours by Friday.',

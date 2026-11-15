@@ -16,8 +16,16 @@
   $$('[data-mail]').forEach(a => { a.href = 'mailto:' + P.email; });
   $$('[data-count]').forEach(el => { el.textContent = (D[el.dataset.count] || []).length; });
   $('#yr').textContent = new Date().getFullYear();
-  $('#socials').innerHTML = P.socials.map(s => `<li><a href="${esc(s.url)}">${esc(s.label)}</a></li>`).join('');
-  $('#client-list').innerHTML = P.clients.map(c => `<li>${esc(c)}</li>`).join('');
+  $('#socials').innerHTML = (P.socials || []).map(s => `<li><a href="${esc(s.url)}">${esc(s.label)}</a></li>`).join('');
+  $('#socials').hidden = !(P.socials || []).length;
+  $('#xp').innerHTML = (P.experience || []).map(x =>
+    `<div class="xp-row reveal">` +
+      `<span class="xp-years">${esc(x.years)}</span>` +
+      `<h3>${esc(x.role)}<span>${esc(x.field)}</span></h3>` +
+      `<ul>${x.points.map(pt => `<li>${esc(pt)}</li>`).join('')}</ul>` +
+    `</div>`).join('');
+  $('#about-cols').innerHTML = (P.about || []).map(([h, items]) =>
+    `<div class="reveal"><h3>${esc(h)}</h3><ul>${items.map(it => `<li>${esc(it)}</li>`).join('')}</ul></div>`).join('');
 
   const img = (src, alt) => `<img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async">`;
 
@@ -28,7 +36,7 @@
   groups.posters = D.posters.map(p => ({
     ratio: 5 / 7, isImg: !!p.image, html: () => posterMedia(p),
     kicker: 'Poster', title: p.title, note: p.note,
-    meta: [['Client', p.client], ['Year', p.year], ['Format', p.format]]
+    meta: [['For', p.client], ['Year', p.year], ['Format', p.format]]
   }));
 
   const initial = D.postersInitial || D.posters.length;
@@ -231,19 +239,53 @@
   typebar.className = 'typebar';
   typebar.setAttribute('role', 'group');
   typebar.setAttribute('aria-label', 'Type direction');
-  typebar.innerHTML = '<span>Type</span>' + TYPES.map(([k, l]) => `<button type="button" data-type-opt="${k}">${l}</button>`).join('');
+  typebar.innerHTML = '<span>Type <kbd>T</kbd></span>' + TYPES.map(([k, l], i) =>
+    `<button type="button" data-type-opt="${k}" title="Press ${i + 1}">${l}</button>`).join('');
   document.body.appendChild(typebar);
+  const curType = () => root.dataset.type || 'editorial';
   const setType = k => {
     if (!TYPES.some(t => t[0] === k)) k = 'editorial';
     if (k === 'editorial') delete root.dataset.type; else root.dataset.type = k;
     $$('button', typebar).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.typeOpt === k)));
   };
-  setType(root.dataset.type || 'editorial');
+  setType(curType());
+
+  /* Switching fonts changes how tall things are. Hold whatever is being looked at in place. */
+  const ANCHORS = '.hero h1, .sec-head, .tile, .c-info, .c-item, .ap-tab, .ap-stage, .portrait, .about-cols > div, .mail, .site-foot';
+  const anchor = () => {
+    const y = window.innerHeight * 0.35;
+    let best = null, bestD = Infinity;
+    $$(ANCHORS).forEach(el => {
+      if (!el.offsetParent) return;
+      const r = el.getBoundingClientRect();
+      const d = r.top <= y && r.bottom >= y ? 0 : Math.min(Math.abs(r.top - y), Math.abs(r.bottom - y));
+      if (d < bestD) { bestD = d; best = el; }
+    });
+    return best && { el: best, top: best.getBoundingClientRect().top };
+  };
+  const hold = a => { if (a) window.scrollBy({ top: a.el.getBoundingClientRect().top - a.top, behavior: 'instant' }); };
+  let switchId = 0;
+  const switchType = k => {
+    const a = anchor(), id = ++switchId;
+    setType(k);
+    try { localStorage.setItem('type', curType()); } catch (err) {}
+    hold(a);
+    /* a font used for the first time arrives a moment later and shifts things again */
+    const again = () => { if (id === switchId) hold(a); };
+    if (document.fonts && document.fonts.ready) requestAnimationFrame(() => document.fonts.ready.then(again));
+    setTimeout(again, 400);
+  };
   typebar.addEventListener('click', e => {
     const b = e.target.closest('button');
-    if (!b) return;
-    setType(b.dataset.typeOpt);
-    try { localStorage.setItem('type', b.dataset.typeOpt); } catch (err) {}
+    if (b) switchType(b.dataset.typeOpt);
+  });
+  /* T = next, Shift+T = previous, 1 to 4 = jump straight to one */
+  document.addEventListener('keydown', e => {
+    const typing = e.target && e.target.closest && e.target.closest('input, textarea, select, [contenteditable]');
+    if (e.metaKey || e.ctrlKey || e.altKey || typing) return;
+    const i = TYPES.findIndex(t => t[0] === curType());
+    if (e.key === 't' || e.key === 'T') switchType(TYPES[(i + (e.shiftKey ? TYPES.length - 1 : 1)) % TYPES.length][0]);
+    else if (e.key >= '1' && e.key <= String(TYPES.length)) switchType(TYPES[+e.key - 1][0]);
   });
 
   const head = $('.site-head');
