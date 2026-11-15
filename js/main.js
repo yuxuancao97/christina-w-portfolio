@@ -325,8 +325,9 @@
         t += STEP / (pace.speed * factor[i] * fromRest);
         when[i] = t;
       }
-      const dur = st.dab ? pace.dab : t;
-      if (st.dab) for (let i = 0; i < n; i++) when[i] = dur * 0.35 * (i + 1) / n; // a dab lands at once
+      const dur = st.dab ? pace.dab : Math.max(t, pace.shortest || 0);
+      if (st.dab) for (let i = 0; i < n; i++) when[i] = dur * 0.45 * (i + 1) / n; // a dab lands almost at once
+      else if (dur > t) for (let i = 0; i < n; i++) when[i] *= dur / t;           // stretch a stroke that would be too quick
 
       // the pause before it: set by hand, none for a joined stroke, otherwise by distance through the air
       const air = prevEnd ? Math.hypot(pts[0][0] - prevEnd[0], pts[0][1] - prevEnd[1]) : 0;

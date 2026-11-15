@@ -22,6 +22,7 @@
      speed        pen speed on a gentle curve, in units per ms (lower = slower signature)
      slowest      how far the pen may slow in the tightest turn (share of `speed`)
      fastest      how far it may speed up on straight runs
+     shortest     the least time any stroke takes, in ms, so short ones do not pop in
      liftBase     ms for the pen to leave and meet the paper
      liftPerUnit  ms added per unit of distance the hand travels in the air
      dab          ms a dot takes
@@ -32,7 +33,7 @@
 window.SIGNATURE = {
   text: 'Christina W',
   viewBox: [22, 78, 990, 178],
-  pace: { speed: 1.1, slowest: 0.42, fastest: 1.28, liftBase: 42, liftPerUnit: 0.3, dab: 85 },
+  pace: { speed: 0.74, slowest: 0.42, fastest: 1.28, shortest: 150, liftBase: 55, liftPerUnit: 0.3, dab: 120 },
   pen: { width: 12, taper: 0.42 },
   strokes: [
     /* C */ { pts: '84,140 69,162 52,203 47,221 47,230 49,236 53,240 64,244 77,243 90,240 102,234 115,224 129,211 137,200 139,193' },
@@ -51,7 +52,7 @@ window.SIGNATURE = {
     /* t bar */ { pts: '415,188 453,166 467,160 483,153 505,141' },
     /* W */ { pts: '853,155 861,185 870,206 877,219 881,223 886,225 890,223 892,220 894,208 896,196 894,189 898,204 904,207 923,225 940,235 947,237 959,237 963,235 967,229 968,222 967,208 959,179 936,119 925,100' },
     /* last of all, the two dots on a beat: one, two */
-    /* i dot */ { dab: true, lift: 300, pts: '331,141 340,139' },
-    /* i dot */ { dab: true, lift: 230, pts: '520,141 529,139' }
+    /* i dot */ { dab: true, lift: 380, pts: '331,141 340,139' },
+    /* i dot */ { dab: true, lift: 290, pts: '520,141 529,139' }
   ]
 };
