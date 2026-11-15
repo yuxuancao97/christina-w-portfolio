@@ -250,53 +250,163 @@
   }
 
   /* ── Signature ───────────────────────────────────────────────
-     Built from js/signature.js: the name set in the handwriting font and uncovered by a pen
-     that follows the middle of every stroke, in writing order. The first scroll starts it,
-     the cover holds still until it is written, and its pace never depends on the scrolling. */
+     Ink on a canvas, from the strokes in js/signature.js. The first scroll starts it, the
+     cover holds still until it is written, and its pace never depends on the scrolling.
+     Each frame only stamps the newest stretch of line, so there is nothing to re-render. */
   const SG = window.SIGNATURE, coverTitle = $('.cover-title');
-  let signTime = 0;
-  if (SG && coverTitle) {
-    const [ox, oy] = SG.origin, [vx, vy, vw, vh] = SG.viewBox, pace = SG.pace;
-    let at = 0;
-    const pens = SG.strokes.map(st => {
-      const pts = st.pts.split(' ').map(q => q.split(',').map(Number));
-      let len = 0;
-      for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
-      const dur = pace.base + len * pace.perUnit; // longer strokes take longer; every stroke has a start and a stop
-      at += st.lift * (pace.lift == null ? 1 : pace.lift);
-      const path = `<path class="pen" pathLength="1" stroke-width="${pace.width}" d="M${pts.map(q => q.join(',')).join('L')}" style="--at:${Math.round(at)}ms;--dur:${Math.round(dur)}ms"/>`;
-      at += dur;
-      return path;
-    }).join('');
-    signTime = at;
-    coverTitle.innerHTML = `<span class="vh">${esc(SG.text)}</span>` +
-      `<svg class="sig" viewBox="${vx} ${vy} ${vw} ${vh}" aria-hidden="true" focusable="false">` +
-        `<defs><mask id="sig-pen" maskUnits="userSpaceOnUse" x="0" y="0" width="1100" height="340">${pens}</mask></defs>` +
-        `<text x="${ox}" y="${oy}" font-size="${SG.size}" mask="url(#sig-pen)">${esc(SG.text)}</text>` +
-      `</svg>`;
-    coverTitle.classList.add('is-sig');
-  }
-  const sig = $('.sig');
+  let ink = null;
+  if (SG && coverTitle && window.requestAnimationFrame) {
+    const [vx, vy, vw, vh] = SG.viewBox, pace = SG.pace, pen = SG.pen;
+    const STEP = 0.5; // distance between stamps, in drawing units
 
-  let held = !location.hash && !!sig, started = false;
+    // round the traced corners (never overshoots), then space the points evenly
+    const smooth = pts => {
+      for (let n = 0; n < 3; n++) {
+        const out = [pts[0]];
+        for (let i = 0; i < pts.length - 1; i++) {
+          const a = pts[i], b = pts[i + 1];
+          out.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25], [a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
+        }
+        out.push(pts[pts.length - 1]);
+        pts = out;
+      }
+      const even = [pts[0]];
+      let carry = 0;
+      for (let i = 1; i < pts.length; i++) {
+        const a = pts[i - 1], b = pts[i], d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        for (let t = STEP - carry; t <= d; t += STEP) even.push([a[0] + (b[0] - a[0]) * t / d, a[1] + (b[1] - a[1]) * t / d]);
+        carry = (carry + d) % STEP;
+      }
+      return even;
+    };
+
+    /* Tempo. For every point along a stroke, work out when the pen reaches it:
+         - it slows in tight curves and runs faster where the line is straighter
+           (handwriting research calls this the two-thirds power law)
+         - it starts each stroke from rest and settles again at the end
+         - between strokes the hand pauses, longer the further it has to travel */
+    const ease = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
+    let at = 0, prevEnd = null, holdFor = 0;
+    const strokes = SG.strokes.map(st => {
+      const pts = smooth(st.pts.split(' ').map(q => q.split(',').map(Number)));
+      const n = pts.length, len = n * STEP;
+
+      // line thickness: thinner where the pen lands and where it leaves; a dot is a single dab
+      const land = Math.min(12, len * 0.3), leave = Math.min(18, len * 0.35);
+      const radius = pts.map((_, i) => {
+        if (st.dab) return pen.width * 0.6;
+        const d = i * STEP, k = Math.min(1, d / land, (len - d) / leave + 0.25);
+        return pen.width / 2 * (1 - pen.taper * (1 - k) * (1 - k));
+      });
+
+      // how sharply the line turns at each point, then the speed that goes with it
+      const span = 7; // points either side, about 3.5 units
+      let factor = pts.map((q, i) => {
+        const a = pts[Math.max(0, i - span)], b = pts[Math.min(n - 1, i + span)];
+        const ux = q[0] - a[0], uy = q[1] - a[1], vx2 = b[0] - q[0], vy2 = b[1] - q[1];
+        const turn = Math.abs(Math.atan2(ux * vy2 - uy * vx2, ux * vx2 + uy * vy2));
+        const curve = turn / (span * STEP * 2) + 1e-4;        // curvature, 1 / radius
+        return Math.max(pace.slowest, Math.min(pace.fastest, Math.cbrt((1 / 45) / curve)));
+      });
+      // even the speed out a little so it changes like a hand, not a switch
+      factor = factor.map((_, i) => {
+        let sum = 0, c = 0;
+        for (let k = Math.max(0, i - 10); k <= Math.min(n - 1, i + 10); k++) { sum += factor[k]; c++; }
+        return sum / c;
+      });
+
+      // when the pen reaches each point, in ms from the start of the stroke
+      const rise = Math.min(18, len * 0.3), fall = Math.min(24, len * 0.38);
+      const when = new Float32Array(n);
+      let t = 0;
+      for (let i = 0; i < n; i++) {
+        const d = i * STEP;
+        const fromRest = Math.min(0.3 + 0.7 * ease(d / rise), 0.34 + 0.66 * ease((len - d) / fall));
+        t += STEP / (pace.speed * factor[i] * fromRest);
+        when[i] = t;
+      }
+      const dur = st.dab ? pace.dab : t;
+      if (st.dab) for (let i = 0; i < n; i++) when[i] = dur * 0.35 * (i + 1) / n; // a dab lands at once
+
+      // the pause before it: set by hand, none for a joined stroke, otherwise by distance through the air
+      const air = prevEnd ? Math.hypot(pts[0][0] - prevEnd[0], pts[0][1] - prevEnd[1]) : 0;
+      at += st.lift != null ? st.lift : st.join || !prevEnd ? 0 : pace.liftBase + air * pace.liftPerUnit;
+      const s = { pts, radius, when, start: at, dur, drawn: 0 };
+      at += dur;
+      prevEnd = pts[n - 1];
+      if (!st.dab) holdFor = at; // the page waits for the writing, not for the dots that follow
+      return s;
+    });
+    // for tuning: the timetable, readable from the page (ms from the first scroll)
+    coverTitle.dataset.timetable = strokes.map(s => `${Math.round(s.start)}+${Math.round(s.dur)}`).join(' ');
+
+    const canvas = document.createElement('canvas');
+    canvas.className = 'ink';
+    canvas.setAttribute('aria-hidden', 'true');
+    const ctx = canvas.getContext('2d');
+    coverTitle.innerHTML = `<span class="vh">${esc(SG.text)}</span>`;
+    coverTitle.append(canvas);
+    coverTitle.classList.add('is-sig');
+    coverTitle.style.setProperty('--sig-ratio', vw / vh);
+
+    // stamp a stretch of one stroke: a run of overlapping dots along the line
+    const stamp = (s, from, to) => {
+      if (to <= from) return;
+      ctx.beginPath();
+      for (let i = from; i < to; i++) {
+        const [x, y] = s.pts[i], r = s.radius[i];
+        ctx.moveTo(x + r, y);
+        ctx.arc(x, y, r, 0, 6.2832);
+      }
+      ctx.fill();
+    };
+    // match the canvas to its size on screen, then put back whatever has been written so far
+    const fit = () => {
+      const w = canvas.clientWidth, dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+      if (!w) return;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(w * dpr * vh / vw);
+      const k = canvas.width / vw;
+      ctx.setTransform(k, 0, 0, k, -vx * k, -vy * k);
+      ctx.fillStyle = getComputedStyle(coverTitle).color;
+      strokes.forEach(s => stamp(s, 0, s.drawn));
+    };
+    fit();
+    if ('ResizeObserver' in window) new ResizeObserver(fit).observe(canvas);
+    else window.addEventListener('resize', fit);
+
+    ink = {
+      time: at,          // the whole signature, dots included
+      holdFor,           // how long the cover is held still
+      write(onHeld) {
+        const t0 = performance.now();
+        let released = false;
+        const frame = now => {
+          const t = now - t0;
+          strokes.forEach(s => {
+            const n = s.pts.length;
+            if (t < s.start || s.drawn >= n) return;
+            let upTo = s.drawn;
+            const local = t - s.start;
+            while (upTo < n && s.when[upTo] <= local) upTo++;
+            stamp(s, s.drawn, upTo);
+            s.drawn = upTo;
+          });
+          if (!released && t >= holdFor) { released = true; if (onHeld) onHeld(); }
+          if (t < at + 60) requestAnimationFrame(frame);
+        };
+        requestAnimationFrame(frame);
+      }
+    };
+  }
+
+  let held = !location.hash && !!ink, started = false;
   const release = () => { held = false; };
   const begin = () => {
-    if (started || !sig) return;
+    if (started || !ink) return;
     started = true;
-    let going = false;
-    const go = () => {
-      if (going) return;
-      going = true;
-      sig.classList.add('go');
-      setTimeout(release, signTime + 120);
-      // once written, drop the pen so the name is ordinary text again
-      setTimeout(() => { $('text', sig).removeAttribute('mask'); sig.classList.add('done'); }, signTime + 500);
-    };
-    // the strokes only fit the handwriting font, so make sure it is in before the pen moves
-    const font = document.fonts && document.fonts.load ? document.fonts.load(`${SG.size}px "${SG.font}"`) : Promise.resolve();
-    font.then(go, go);
-    setTimeout(go, 1200);
-    setTimeout(release, signTime + 3000); // never keep the page held if something goes wrong
+    ink.write(release);
+    setTimeout(release, ink.holdFor + 3000); // never keep the page held if something goes wrong
   };
   const SCROLL_KEYS = [' ', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'End', 'Home'];
   const intent = e => {

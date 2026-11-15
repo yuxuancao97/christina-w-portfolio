@@ -18,8 +18,8 @@
   --stage-muted: #8e8d8a;
   --stage-line: rgba(255, 255, 255, 0.14);
 
-  /* paper grain, painted as part of the page background */
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .075 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* paper grain: a small image tiled over the page (a live filter here made every redraw slow) */
+  --grain: url("../images/grain.png");
 
   --hand: "Reenie Beanie", "Bradley Hand", cursive;   /* the signature on the cover, nowhere else */
   --serif: "Instrument Serif", "Times New Roman", serif;
@@ -127,22 +127,20 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
   position: relative; z-index: 2; margin-bottom: -0.2em; white-space: nowrap; text-align: center;
   font-size: min(clamp(4.4rem, 21vw, 19rem), 31svh); line-height: 0.74;
 }
-/* the signature: the name in the handwriting font, uncovered by pen strokes (see js/signature.js) */
+/* the signature: ink drawn on a canvas (see js/signature.js) */
 .cover-title.is-sig {
   --sig-w: min(88vw, 122svh, 80rem);
   width: var(--sig-w); margin-bottom: calc(var(--sig-w) * -0.05); font-size: 0; line-height: 0;
 }
-.sig { display: block; width: 100%; height: auto; overflow: visible; }
-.sig text { font-family: var(--hand); fill: currentColor; }
-.sig .pen { fill: none; stroke: #fff; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1 1; stroke-dashoffset: 1; opacity: 0; }
-.sig.go .pen { animation: sig-pen var(--dur) cubic-bezier(0.45, 0.05, 0.3, 1) var(--at) forwards; }
-@keyframes sig-pen { from { opacity: 1; stroke-dashoffset: 1; } to { opacity: 1; stroke-dashoffset: 0; } }
+.ink { display: block; width: 100%; aspect-ratio: var(--sig-ratio, 5.56); }
 .cutout { width: min(63svh, 88vw); flex: none; }
 .cutout img { width: 100%; height: auto; mix-blend-mode: multiply; }
 
 /* Hello */
-.hello { display: grid; grid-template-columns: repeat(12, 1fr); gap: 40px 24px; align-items: start; padding-top: 66px; /* clears the menu when this lands at the top of the screen */ padding-bottom: min(clamp(36px, 6vw, 96px), 4svh); }
-.hello-text { grid-column: 1 / 10; font-size: min(clamp(2.6rem, 6.9vw, 7.2rem), 7.4svh); line-height: 0.98; text-wrap: balance; }
+.hello { display: grid; grid-template-columns: repeat(12, 1fr); gap: 40px 24px; align-items: start;
+  /* the first words after the cover: given room to breathe, at the cost of a little more scrolling */
+  padding-top: min(clamp(76px, 9.5vw, 156px), 13svh); padding-bottom: min(clamp(76px, 9.5vw, 156px), 13svh); }
+.hello-text { grid-column: 1 / 10; font-size: min(clamp(2.6rem, 6.9vw, 7.2rem), 9svh); line-height: 0.98; text-wrap: balance; }
 .detail { grid-column: 10 / -1; padding-top: 0.6em; }
 .detail .label { margin-bottom: 18px; }
 .detail p { font-size: 13px; line-height: 1.75; color: var(--ink); max-width: 30em; }
@@ -336,7 +334,7 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 }
 
 @media (max-width: 899px) {
-  .hello { row-gap: 18px; }
+  .hello { row-gap: 26px; }
   .hello-text, .detail { grid-column: 1 / -1; }
   .seas-text, .seas-facts { grid-column: 1 / -1; }
   .hello-text { font-size: clamp(2.5rem, 11vw, 5rem); }
