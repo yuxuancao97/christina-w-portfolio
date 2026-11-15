@@ -241,6 +241,10 @@
     const track = $('#seas-track');
     track.innerHTML = stripHTML(false) + stripHTML(true);
     track.style.setProperty('--dur', Math.max(40, strip.length * 7) + 's');
+    // the strip only moves while it is on screen
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(es => es.forEach(e => track.classList.toggle('paused', !e.isIntersecting))).observe(track.parentNode);
+    }
   } else {
     $('#seas').hidden = true;
   }
@@ -249,10 +253,7 @@
      A line is uncovered letter by letter with a soft, slanted edge, paced like a pen:
      wide letters take longer, each letter speeds up and slows down, and there is a
      short lift between letters and a longer one between words.
-     data-write says what moves the pen:
-       pin    the cover: held in place while scrolling writes the signature
-       scroll follows the scroll position as the line moves up the screen
-       view   plays once when the line comes into view                         */
+     The first scroll starts it; from there it runs at its own pace. Pacing is set just below. */
   const clamp01 = v => Math.max(0, Math.min(1, v));
   const penEase = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 
@@ -267,7 +268,7 @@
       `<span class="w">${Array.from(w).map(c => `<span class="ch">${esc(c)}</span>`).join('')}</span>`).join(' ');
     el.append(sr, ink);
     const chars = $$('.ch', ink);
-    const w = { el, mode: el.dataset.write, chars, n: chars.length, shown: 0, target: 0, plan: [] };
+    const w = { el, chars, n: chars.length, plan: [] };
 
     // when each letter starts and how long it takes, as shares of the whole line
     w.pace = () => {
@@ -299,95 +300,73 @@
     return w;
   });
 
-  // The writing runs even when the device asks for reduced motion (the owner's choice): letters
-  // appear in place, nothing slides or zooms. To honour the setting again, use
-  // window.matchMedia('(prefers-reduced-motion: reduce)').matches here.
-  const noMotion = false;
-  const pin = $('.cover-pin');
-  // how far through the held cover the page has scrolled, 0 to 1
-  const pinProgress = () => {
-    const r = pin.getBoundingClientRect(), travel = r.height - window.innerHeight;
-    return travel > 0 ? clamp01(-r.top / travel) : 1;
-  };
-
-  // play a line over time; the pace plan gives it its rhythm
-  const play = w => {
-    if (!w || w.playing || w.shown >= 1) return;
+  /* Pacing of the signature, in milliseconds:
+       WRITE_BASE         time added once per line
+       WRITE_PER_LETTER   time per letter; raise it to write more slowly
+     "Christina W" takes WRITE_BASE + 10 x WRITE_PER_LETTER. Within that, the plan built
+     above gives it its rhythm (wide letters slower, lifts between letters and words).
+     It runs even when the device asks for reduced motion (the owner's choice): letters
+     appear in place and nothing slides. */
+  const WRITE_BASE = 450, WRITE_PER_LETTER = 215;
+  const writeTime = w => WRITE_BASE + w.n * WRITE_PER_LETTER;
+  const play = (w, onDone) => {
+    if (w.playing) return;
     w.playing = true;
-    const ms = 500 + w.n * 190, t0 = performance.now();
+    w.pace(); // measured now, with the handwriting font in place
+    const ms = writeTime(w), t0 = performance.now();
     const tick = now => {
-      w.shown = clamp01((now - t0) / ms);
-      w.draw(w.shown);
-      if (w.shown < 1) requestAnimationFrame(tick);
+      const p = clamp01((now - t0) / ms);
+      w.draw(p);
+      if (p < 1) requestAnimationFrame(tick); else if (onDone) onDone();
     };
     requestAnimationFrame(tick);
   };
 
-  if (noMotion) {
-    writers.forEach(w => w.draw(1));
-    root.classList.add('intro-done', 'still');
+  /* The first scroll starts the signature. The cover is held still while it is written,
+     always at the same pace however hard the reader scrolls, and then the page moves on.
+     A tap, click or key press starts it too. A link that names a section skips the hold. */
+  let held = !location.hash && writers.length > 0, started = false;
+  const release = () => { held = false; };
+  const begin = () => {
+    if (started) return;
+    started = true;
+    const longest = Math.max(0, ...writers.map(writeTime));
+    writers.forEach(w => play(w, () => setTimeout(release, 200)));
+    setTimeout(release, longest + 1500); // never keep the page held if a frame is missed
+  };
+  const SCROLL_KEYS = [' ', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'End', 'Home'];
+  const intent = e => {
+    if (!held) return;
+    if (e.type === 'keydown' && !SCROLL_KEYS.includes(e.key)) return;
+    if (e.cancelable) e.preventDefault(); // hold the cover where it is
+    begin();
+  };
+  if (held) {
+    window.addEventListener('wheel', intent, { passive: false });
+    window.addEventListener('touchmove', intent, { passive: false });
+    window.addEventListener('keydown', intent);
+    window.addEventListener('scroll', begin, { passive: true }); // a dragged scrollbar
+    $('.cover').addEventListener('click', begin);
   } else {
-    if ('IntersectionObserver' in window) {
-      const seen = new IntersectionObserver(entries => entries.forEach(e => {
-        if (e.isIntersecting) play(writers.find(w => w.el === e.target));
-      }), { rootMargin: '0px 0px -18% 0px' });
-      writers.filter(w => w.mode === 'view').forEach(w => seen.observe(w.el));
-    } else {
-      writers.filter(w => w.mode === 'view').forEach(w => w.draw(1));
-    }
-
-    // scroll-driven lines: the pen follows the scroll, easing to catch up, and never un-writes
-    const scrolled = writers.filter(w => w.mode === 'scroll' || w.mode === 'pin');
-    let ticking = false, prevT = 0;
-    const follow = now => {
-      let moving = false;
-      // measured in real time, so the pen moves the same on a slow screen as on a fast one
-      const dt = prevT ? Math.min(64, now - prevT) : 16;
-      prevT = now;
-      const vh = window.innerHeight, pp = pinProgress();
-      // the menu appears once the signature is done and steps back if the reader returns to the cover
-      root.classList.toggle('intro-done', pp > 0.8);
-      scrolled.forEach(w => {
-        const r = w.el.getBoundingClientRect();
-        const at = w.mode === 'pin' ? pp / 0.7 : (vh * 0.9 - r.top) / (vh * 0.4 + r.height);
-        w.target = Math.max(w.target, clamp01(at));
-        const gap = w.target - w.shown;
-        if (gap > 0.0015) {
-          // ease towards where the scroll is, but never faster than a hand could write the line
-          const ease = gap * (1 - Math.exp(-dt / 170)), fastest = dt / (350 + w.n * 80);
-          w.shown += Math.min(ease, fastest);
-          w.draw(w.shown);
-          moving = true;
-        } else if (gap > 0) { w.shown = w.target; w.draw(w.shown); }
-      });
-      ticking = moving;
-      if (moving) requestAnimationFrame(follow); else prevT = 0;
-    };
-    const kick = () => { if (!ticking) { ticking = true; requestAnimationFrame(follow); } };
-    window.addEventListener('scroll', kick, { passive: true });
-    window.addEventListener('resize', kick);
-
-    const ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-    ready.then(() => {
-      writers.forEach(w => { w.pace(); w.draw(w.shown); }); // letter widths are only right once the font is in
-      // the pen makes its first mark on its own, then waits for the reader to scroll
-      setTimeout(() => {
-        writers.filter(w => w.mode === 'pin').forEach(w => { w.target = Math.max(w.target, 0.2); });
-        kick();
-      }, 450);
-    });
-    kick();
+    begin();
   }
 
   /* ── Page behaviour ──────────────────────────────────────── */
-  // Over the black work chapters the menu steps aside while scrolling down and returns on the way up.
-  const head = $('.site-head'), chaptersEl = $('#chapters');
+  const head = $('.site-head'), chaptersEl = $('#chapters'), darkBands = [$('#seas'), chaptersEl];
   let lastY = window.scrollY;
-  window.addEventListener('scroll', () => {
-    const y = window.scrollY, r = chaptersEl.getBoundingClientRect();
+  const onScroll = () => {
+    const y = window.scrollY;
+    // the opening screen shows only the signature and the portrait; the menu arrives once the reader moves on
+    root.classList.toggle('intro-done', y > window.innerHeight * 0.45);
+    // the menu turns light while it sits over a black band
+    head.classList.toggle('on-dark', darkBands.some(d => { const r = d.getBoundingClientRect(); return r.top < 40 && r.bottom > 40; }));
+    // over the work chapters it steps aside while scrolling down and returns on the way up
+    const r = chaptersEl.getBoundingClientRect();
     head.classList.toggle('away', y > lastY && r.top < 60 && r.bottom > 60);
     lastY = y;
-  }, { passive: true });
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
 
   if ('IntersectionObserver' in window) {
     const io = new IntersectionObserver(entries => entries.forEach(e => {

@@ -89,9 +89,8 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 .label { font-family: var(--mono); font-size: 12px; font-weight: 400; line-height: 1.4; letter-spacing: 0.06em; text-transform: uppercase; }
 
 /* Things materialise as they scroll into view */
-.reveal { opacity: 0; transform: translateY(26px); transition: opacity 1s var(--ease), transform 1s var(--ease), filter 1s var(--ease); }
-.page .reveal { filter: blur(7px); }
-.reveal.in { opacity: 1; transform: none; filter: none; }
+.reveal { opacity: 0; transform: translateY(26px); transition: opacity 1s var(--ease), transform 1s var(--ease); }
+.reveal.in { opacity: 1; transform: none; }
 
 /* ─────────────────────────────────────────────
    Header: tiny running labels that read on paper and on black
@@ -100,10 +99,11 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
   position: fixed; inset: 0 0 auto 0; z-index: 50;
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
   padding: calc(20px + env(safe-area-inset-top, 0px)) var(--pad) 12px;
-  font-size: 14px; color: #fff; mix-blend-mode: difference;
-  transition: transform 0.45s var(--ease), opacity 0.6s;
+  font-size: 14px; color: var(--ink);
+  transition: transform 0.45s var(--ease), opacity 0.6s, color 0.3s;
 }
-/* the cover shows only the signature and the portrait; the menu arrives once the signature is written */
+.site-head.on-dark { color: #f2f1ee; }
+/* the cover shows only the signature and the portrait; the menu arrives once the reader scrolls on */
 .js:not(.intro-done) .site-head { opacity: 0; pointer-events: none; }
 .site-head.away { transform: translateY(-100%); opacity: 0; }
 .site-head:focus-within { transform: none; opacity: 1; pointer-events: auto; }
@@ -127,11 +127,8 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 }
 .page-top .label { color: var(--ink); }
 
-/* Cover: held in place while scrolling writes the signature */
-.js .cover-pin { height: 250svh; }
-.js.still .cover-pin { height: auto; }
+/* Cover: the signature writes itself over the portrait */
 .cover {
-  position: sticky; top: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
   height: 100svh; min-height: 0; padding-top: 40px; padding-bottom: 0; overflow: hidden;
   background: var(--bg) var(--grain); /* the portrait blends into this, which is what makes it read as a cut-out */
@@ -164,7 +161,8 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 .seas-facts a { text-decoration: none; }
 .seas-facts a:hover { color: var(--accent); }
 .seas-reel { margin-top: clamp(44px, 6.4vw, 96px); overflow: hidden; }
-.seas-track { display: flex; width: max-content; animation: drift var(--dur, 80s) linear infinite; }
+.seas-track { display: flex; width: max-content; will-change: transform; animation: drift var(--dur, 80s) linear infinite; }
+.seas-track.paused { animation-play-state: paused; }
 .seas-reel:hover .seas-track, .seas-reel:focus-within .seas-track { animation-play-state: paused; }
 .s-item {
   all: unset; display: block; flex: none; height: clamp(190px, 27vw, 350px); margin-right: 10px;
@@ -377,6 +375,6 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   /* things still fade in, but nothing slides, blurs or glides */
   html { scroll-behavior: auto; }
-  .reveal, .page .reveal { transform: none; filter: none; transition: opacity 1s var(--ease); }
+  .reveal { transform: none; transition: opacity 1s var(--ease); }
   .lb[open] { animation: none; }
 }
