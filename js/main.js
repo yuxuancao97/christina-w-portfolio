@@ -31,7 +31,7 @@
   const pieceMedia = (it, g, ch, k) => {
     if (it.image) return img(it.image, `${nameOf(it)}, ${ch.title}`);
     const [a, b] = ratioOf(it), r = a / b, art = it.art || g.art || ['orb', 'paper'];
-    const spec = { title: nameOf(it), client: ch.title, year: ch.years, style: art[0], palette: art[1], glyph: it.glyph || g.glyph, seed: g.title + nameOf(it) + k };
+    const spec = { title: nameOf(it), client: ch.title, year: ch.short || ch.years, style: art[0], palette: art[1], glyph: it.glyph || g.glyph, seed: g.title + nameOf(it) + k };
     return r >= 1 ? Art.poster(spec, 600 * r, 600) : Art.poster(spec, 600, 600 / r);
   };
 
@@ -64,7 +64,7 @@
       groups[key] = g.items.map((it, k) => ({
         ratio: ratioOf(it)[0] / ratioOf(it)[1], isImg: !!it.image, html: () => pieceMedia(it, g, ch, k),
         kicker: ch.title, title: nameOf(it), note: it.note,
-        meta: [['Role', ch.role], ['Years', ch.years], ['Work', g.title]]
+        meta: [['Role', ch.role], ['Period', ch.years], ['Work', g.title]]
       }));
       if (g.layout === 'tiles') {
         g.items.forEach((it, k) => reel.push(pieceMedia(it, g, ch, k)));
@@ -91,8 +91,8 @@
   $('#chapters').innerHTML = D.work.map((ch, ci) =>
     `<section class="section chapter" id="work-${esc(ch.id)}">` +
       `<header class="sec-head">` +
-        `<div class="sec-top"><span>${pad2(ci + 1)}</span><span>${esc(ch.role)}, ${esc(ch.years)}</span></div>` +
-        `<div class="sec-main"><h2>${esc(ch.title)}</h2><p>${esc(ch.summary)}</p></div>` +
+        `<div class="sec-top"><span>${pad2(ci + 1)}</span><span>${esc(ch.years)}</span></div>` +
+        `<div class="sec-main"><h2>${esc(ch.title)}</h2><p><span class="role">${esc(ch.role)}, ${esc(ch.industry)}</span>${esc(ch.summary)}</p></div>` +
       `</header>` +
       ch.groups.map((g, gi) => groupHTML(g, gi, ch)).join('') +
     `</section>`).join('');
@@ -101,7 +101,7 @@
   $('#work-index').innerHTML = D.work.map(ch =>
     `<a class="xp-row reveal" href="#work-${esc(ch.id)}">` +
       `<span class="xp-years">${esc(ch.years)}</span>` +
-      `<h3>${esc(ch.title)}<span>${esc(ch.role)}</span></h3>` +
+      `<h3>${esc(ch.title)}<span>${esc(ch.role)}, ${esc(ch.industry)}</span></h3>` +
       `<ul>${ch.groups.map(g => `<li>${esc(g.title)}</li>`).join('')}</ul>` +
     `</a>`).join('');
 

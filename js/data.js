@@ -4,9 +4,9 @@
    The page follows Christina's CV: one chapter per role, newest
    first, and inside each chapter one group per kind of work.
 
-   Profile and chapter text come from the CV. Employers are named
-   by industry until she says they can be named. The email is a
-   placeholder. Every piece is still a generated placeholder.
+   Profile and chapter text come from the CV. Her birth date, height
+   and legal name are left out on purpose. The email is a placeholder.
+   Every piece is still a generated placeholder.
 
    Adding the real work
    • A piece in a 'rows' or 'tiles' group:
@@ -148,20 +148,21 @@ window.PORTFOLIO = {
     socials: [],
     bio: 'Visual designer with a degree in Visual Communication Design. Since 2020 she has worked in-house for brands in automotive electronics, fitness and cross-border e-commerce.',
     about: [
-      ['Education', ['BA, Visual Communication Design', '2014 to 2018', 'Scholarship in each of the four years']],
+      ['Education', ['BA, Visual Communication Design', 'Jincheng College, 2014 to 2018', 'Scholarship in each of the four years']],
       ['Skills', ['Visual identity', 'Layout and typeface design', 'Packaging design', 'Advertising', 'Photography']],
       ['Tools', ['Photoshop', 'Illustrator']],
-      ['Languages', ['English, Band 6 certificate']]
+      ['Languages', ['English, CET-6']]
     ]
   },
 
   work: [
     {
-      id: 'automotive',
-      title: 'Automotive electronics',
+      id: 'kunyi',
+      title: 'Kunyi Electronic Technology',
+      industry: 'Automotive electronics',
       role: 'Graphic Designer',
-      years: '2023 to 2025',
-      summary: 'Responsible for the brand’s visual design and presentation, in print, online and at exhibitions in China and abroad.',
+      years: 'Apr 2023 to Jan 2025', short: '2023/25',
+      summary: 'Overall responsibility for the brand’s visual design and presentation, in print, online and at domestic and international exhibitions.',
       groups: [
         {
           title: 'Exhibitions & workshops', layout: 'rows', art: ['rays', 'cobalt'],
@@ -182,11 +183,11 @@ window.PORTFOLIO = {
           ]
         },
         {
-          title: 'Website & social media', layout: 'rows', art: ['bands', 'sky'],
+          title: 'Website & WeChat official account', layout: 'rows', art: ['bands', 'sky'],
           items: [
             { label: 'Website banner', ratio: [16, 9] },
-            { label: 'Social post', ratio: [1, 1] },
-            { label: 'Social post', ratio: [4, 5] },
+            { label: 'WeChat visual', ratio: [1, 1] },
+            { label: 'WeChat visual', ratio: [4, 5] },
             { label: 'Website banner', ratio: [3, 1] }
           ]
         },
@@ -200,11 +201,12 @@ window.PORTFOLIO = {
       ]
     },
     {
-      id: 'fitness',
-      title: 'Fitness',
+      id: 'shuhua',
+      title: 'Shuhua Sports',
+      industry: 'Fitness',
       role: 'Graphic Designer',
-      years: '2022 to 2023',
-      summary: 'Independently produced the visual design for the company’s fitness sub-brand and its directly operated locations, from sampling and proofs to final production.',
+      years: 'Jan 2022 to Apr 2023', short: '2022/23',
+      summary: 'Independently produced the commercial visual design for the Shuhua Fitness sub-brand and its directly operated locations, from sampling and proofs to final production.',
       groups: [
         {
           title: 'Visual identity', layout: 'rows', art: ['orb', 'tang'],
@@ -224,13 +226,13 @@ window.PORTFOLIO = {
           ]
         },
         {
-          title: 'Social media', layout: 'rows', art: ['dots', 'rose'],
+          title: 'WeChat official account', layout: 'rows', art: ['dots', 'rose'],
           items: [
-            { label: 'Post', ratio: [1, 1] },
-            { label: 'Post', ratio: [4, 5] },
-            { label: 'Story', ratio: [9, 16] },
-            { label: 'Post', ratio: [1, 1] },
-            { label: 'Post', ratio: [4, 5] }
+            { label: 'Marketing visual', ratio: [1, 1] },
+            { label: 'Marketing visual', ratio: [4, 5] },
+            { label: 'Marketing visual', ratio: [9, 16] },
+            { label: 'Marketing visual', ratio: [1, 1] },
+            { label: 'Marketing visual', ratio: [4, 5] }
           ]
         },
         {
@@ -244,10 +246,11 @@ window.PORTFOLIO = {
       ]
     },
     {
-      id: 'ecommerce',
-      title: 'Cross-border e-commerce',
+      id: 'sainuoweier',
+      title: 'Sainuoweier Technology',
+      industry: 'Cross-border e-commerce',
       role: 'Graphic Designer',
-      years: '2020 to 2021',
+      years: 'Apr 2020 to Dec 2021', short: '2020/21',
       summary: 'Product imagery and text, packaging and promotions for the company’s Amazon store.',
       groups: [
         { title: 'Amazon product pages', layout: 'pages', items: SAMPLE_PAGES },
