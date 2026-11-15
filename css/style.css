@@ -73,16 +73,6 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 .skip:focus { top: 10px; }
 
 .hand { font-family: var(--hand); font-weight: 400; line-height: 0.86; letter-spacing: -0.01em; }
-/* handwriting animation: words stay whole when a line wraps, letters are uncovered one by one */
-.hand .w { display: inline-block; white-space: nowrap; }
-.hand .ch {
-  /* room for strokes that reach past the letter's own box, so the moving edge does not clip them */
-  display: inline-block; padding: 0.32em 0.2em; margin: -0.32em -0.2em;
-  --edge: calc(var(--q, 1) * 150% - 40%);
-  -webkit-mask-image: linear-gradient(104deg, #000 var(--edge), transparent calc(var(--edge) + 16%));
-  mask-image: linear-gradient(104deg, #000 var(--edge), transparent calc(var(--edge) + 16%));
-}
-.hand .ch.done { -webkit-mask-image: none; mask-image: none; }
 .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .display { font-family: var(--serif); font-weight: 400; letter-spacing: -0.022em; }
 .display em { font-style: italic; color: var(--accent); }
@@ -137,8 +127,18 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
   position: relative; z-index: 2; margin-bottom: -0.2em; white-space: nowrap; text-align: center;
   font-size: min(clamp(4.4rem, 21vw, 19rem), 31svh); line-height: 0.74;
 }
+/* the signature: the name in the handwriting font, uncovered by pen strokes (see js/signature.js) */
+.cover-title.is-sig {
+  --sig-w: min(88vw, 122svh, 80rem);
+  width: var(--sig-w); margin-bottom: calc(var(--sig-w) * -0.05); font-size: 0; line-height: 0;
+}
+.sig { display: block; width: 100%; height: auto; overflow: visible; }
+.sig text { font-family: var(--hand); fill: currentColor; }
+.sig .pen { fill: none; stroke: #fff; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1 1; stroke-dashoffset: 1; opacity: 0; }
+.sig.go .pen { animation: sig-pen var(--dur) cubic-bezier(0.45, 0.05, 0.3, 1) var(--at) forwards; }
+@keyframes sig-pen { from { opacity: 1; stroke-dashoffset: 1; } to { opacity: 1; stroke-dashoffset: 0; } }
 .cutout { width: min(63svh, 88vw); flex: none; }
-.cutout img { width: 100%; height: auto; filter: grayscale(1) contrast(1.08); mix-blend-mode: multiply; }
+.cutout img { width: 100%; height: auto; mix-blend-mode: multiply; }
 
 /* Hello */
 .hello { display: grid; grid-template-columns: repeat(12, 1fr); gap: 40px 24px; align-items: start; padding-top: clamp(96px, 13vw, 200px); padding-bottom: clamp(96px, 13vw, 200px); }
@@ -179,7 +179,7 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 .resume-id .label { margin-top: 12px; color: var(--muted); }
 .avatar {
   width: clamp(150px, 15vw, 210px); height: auto; aspect-ratio: 1; object-fit: cover; object-position: 50% 12%;
-  border-radius: 50%; margin: clamp(28px, 4vw, 52px) 0; filter: grayscale(1) contrast(1.06); background: #fff;
+  border-radius: 50%; margin: clamp(28px, 4vw, 52px) 0; background: #fff;
 }
 .id-list { font-size: 14px; }
 .id-list div { display: grid; grid-template-columns: 72px 1fr; gap: 12px; padding: 3px 0; }

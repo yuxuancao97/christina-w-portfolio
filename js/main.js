@@ -249,90 +249,54 @@
     $('#seas').hidden = true;
   }
 
-  /* ── Handwriting ─────────────────────────────────────────────
-     A line is uncovered letter by letter with a soft, slanted edge, paced like a pen:
-     wide letters take longer, each letter speeds up and slows down, and there is a
-     short lift between letters and a longer one between words.
-     The first scroll starts it; from there it runs at its own pace. Pacing is set just below. */
-  const clamp01 = v => Math.max(0, Math.min(1, v));
-  const penEase = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  /* ── Signature ───────────────────────────────────────────────
+     Built from js/signature.js: the name set in the handwriting font and uncovered by a pen
+     that follows the middle of every stroke, in writing order. The first scroll starts it,
+     the cover holds still until it is written, and its pace never depends on the scrolling. */
+  const SG = window.SIGNATURE, coverTitle = $('.cover-title');
+  let signTime = 0;
+  if (SG && coverTitle) {
+    const [ox, oy] = SG.origin, [vx, vy, vw, vh] = SG.viewBox, pace = SG.pace;
+    let at = 0;
+    const pens = SG.strokes.map(st => {
+      const pts = st.pts.split(' ').map(q => q.split(',').map(Number));
+      let len = 0;
+      for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+      const dur = pace.base + len * pace.perUnit; // longer strokes take longer; every stroke has a start and a stop
+      at += st.lift;
+      const path = `<path class="pen" pathLength="1" stroke-width="${pace.width}" d="M${pts.map(q => q.join(',')).join('L')}" style="--at:${Math.round(at)}ms;--dur:${Math.round(dur)}ms"/>`;
+      at += dur;
+      return path;
+    }).join('');
+    signTime = at;
+    coverTitle.innerHTML = `<span class="vh">${esc(SG.text)}</span>` +
+      `<svg class="sig" viewBox="${vx} ${vy} ${vw} ${vh}" aria-hidden="true" focusable="false">` +
+        `<defs><mask id="sig-pen" maskUnits="userSpaceOnUse" x="0" y="0" width="1100" height="340">${pens}</mask></defs>` +
+        `<text x="${ox}" y="${oy}" font-size="${SG.size}" mask="url(#sig-pen)">${esc(SG.text)}</text>` +
+      `</svg>`;
+    coverTitle.classList.add('is-sig');
+  }
+  const sig = $('.sig');
 
-  const writers = $$('[data-write]').map(el => {
-    const text = el.textContent.trim();
-    el.textContent = '';
-    const sr = document.createElement('span'); // the whole line, for screen readers and copy
-    sr.className = 'vh'; sr.textContent = text;
-    const ink = document.createElement('span');
-    ink.setAttribute('aria-hidden', 'true');
-    ink.innerHTML = text.split(/\s+/).map(w =>
-      `<span class="w">${Array.from(w).map(c => `<span class="ch">${esc(c)}</span>`).join('')}</span>`).join(' ');
-    el.append(sr, ink);
-    const chars = $$('.ch', ink);
-    const w = { el, chars, n: chars.length, plan: [] };
-
-    // when each letter starts and how long it takes, as shares of the whole line
-    w.pace = () => {
-      const widths = chars.map(c => c.getBoundingClientRect().width || 1);
-      const avg = widths.reduce((a, b) => a + b, 0) / widths.length;
-      let t = 0;
-      w.plan = chars.map((c, i) => {
-        const ch = c.textContent;
-        let d = 0.55 * avg + 0.45 * widths[i];            // wider letters take longer
-        if (/[A-Z]/.test(ch)) d *= 1.3;                    // capitals are drawn with more care
-        if (/[.,;:'’]/.test(ch)) d = avg * 0.35;           // a dot or comma is a flick
-        const start = t;
-        const lastInWord = !c.nextElementSibling;
-        t += d + avg * (lastInWord ? 0.95 : 0.16);         // pen lift: long between words, short between letters
-        return { start, d };
-      });
-      w.plan.forEach(pl => { pl.start /= t; pl.d /= t; });
-    };
-    w.draw = p => chars.forEach((c, i) => {
-      const pl = w.plan[i];
-      const q = p >= 1 ? 1 : penEase(clamp01((p - pl.start) / pl.d));
-      if (q === c._q) return;
-      c._q = q;
-      c.style.setProperty('--q', q.toFixed(4));
-      c.classList.toggle('done', q >= 1);
-    });
-    w.pace();
-    w.draw(0);
-    return w;
-  });
-
-  /* Pacing of the signature, in milliseconds:
-       WRITE_BASE         time added once per line
-       WRITE_PER_LETTER   time per letter; raise it to write more slowly
-     "Christina W" takes WRITE_BASE + 10 x WRITE_PER_LETTER. Within that, the plan built
-     above gives it its rhythm (wide letters slower, lifts between letters and words).
-     It runs even when the device asks for reduced motion (the owner's choice): letters
-     appear in place and nothing slides. */
-  const WRITE_BASE = 450, WRITE_PER_LETTER = 215;
-  const writeTime = w => WRITE_BASE + w.n * WRITE_PER_LETTER;
-  const play = (w, onDone) => {
-    if (w.playing) return;
-    w.playing = true;
-    w.pace(); // measured now, with the handwriting font in place
-    const ms = writeTime(w), t0 = performance.now();
-    const tick = now => {
-      const p = clamp01((now - t0) / ms);
-      w.draw(p);
-      if (p < 1) requestAnimationFrame(tick); else if (onDone) onDone();
-    };
-    requestAnimationFrame(tick);
-  };
-
-  /* The first scroll starts the signature. The cover is held still while it is written,
-     always at the same pace however hard the reader scrolls, and then the page moves on.
-     A tap, click or key press starts it too. A link that names a section skips the hold. */
-  let held = !location.hash && writers.length > 0, started = false;
+  let held = !location.hash && !!sig, started = false;
   const release = () => { held = false; };
   const begin = () => {
-    if (started) return;
+    if (started || !sig) return;
     started = true;
-    const longest = Math.max(0, ...writers.map(writeTime));
-    writers.forEach(w => play(w, () => setTimeout(release, 200)));
-    setTimeout(release, longest + 1500); // never keep the page held if a frame is missed
+    let going = false;
+    const go = () => {
+      if (going) return;
+      going = true;
+      sig.classList.add('go');
+      setTimeout(release, signTime + 120);
+      // once written, drop the pen so the name is ordinary text again
+      setTimeout(() => { $('text', sig).removeAttribute('mask'); sig.classList.add('done'); }, signTime + 500);
+    };
+    // the strokes only fit the handwriting font, so make sure it is in before the pen moves
+    const font = document.fonts && document.fonts.load ? document.fonts.load(`${SG.size}px "${SG.font}"`) : Promise.resolve();
+    font.then(go, go);
+    setTimeout(go, 1200);
+    setTimeout(release, signTime + 3000); // never keep the page held if something goes wrong
   };
   const SCROLL_KEYS = [' ', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'End', 'Home'];
   const intent = e => {

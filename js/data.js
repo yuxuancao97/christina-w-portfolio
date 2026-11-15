@@ -150,8 +150,7 @@ window.PORTFOLIO = {
     span: '2020 - 2025 Portfolio',
     email: 'hello@example.com',
     socials: [],
-    /* `cover` is the handwritten signature on the opening screen. `hello` and `bio` are sample wording. */
-    cover: 'Christina W',
+    /* `hello` and `bio` are sample wording. The signature on the cover lives in js/signature.js. */
     hello: 'Hello, I design brand visuals, Amazon store content, packaging & posters.',
     bio: 'I have a degree in Visual Communication Design. Since 2020 I have worked in-house for brands in automotive electronics, fitness and cross-border e-commerce.',
     /* Resume rows: [left, right]. Experience is filled in from `work` below. */
