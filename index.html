@@ -23,10 +23,7 @@
   <header class="site-head">
     <a class="brand" href="#top" data-t="name">Christina W</a>
     <nav class="nav" aria-label="Sections">
-      <a class="only-m" href="#posters">Work</a>
-      <a class="only-d" href="#posters">Posters<sup data-count="posters"></sup></a>
-      <a class="only-d" href="#campaigns">Campaigns<sup data-count="campaigns"></sup></a>
-      <a class="only-d" href="#aplus">A+ Content<sup data-count="aplus"></sup></a>
+      <a href="#work">Work</a>
       <a href="#about">About</a>
       <a href="#contact">Contact</a>
     </nav>
@@ -46,51 +43,17 @@
 
     <div class="marquee" aria-hidden="true"><div class="marquee-track" id="marquee"></div></div>
 
-    <!-- ───────── Posters ───────── -->
-    <section class="section" id="posters">
-      <header class="sec-head">
-        <div class="sec-top"><span>01</span><span id="count-posters"></span></div>
-        <div class="sec-main">
-          <h2>Posters</h2>
-        </div>
-      </header>
-      <div class="poster-grid" id="poster-grid"></div>
-      <div class="more-wrap"><button class="btn" id="poster-more" type="button" hidden></button></div>
+    <!-- ───────── Work: overview, then one chapter per role ───────── -->
+    <section class="section" id="work">
+      <h2 class="vh">Work</h2>
+      <div class="xp" id="work-index"></div>
     </section>
-
-    <!-- ───────── Campaigns ───────── -->
-    <section class="section" id="campaigns">
-      <header class="sec-head">
-        <div class="sec-top"><span>02</span><span id="count-campaigns"></span></div>
-        <div class="sec-main">
-          <h2>Campaigns</h2>
-        </div>
-      </header>
-      <div id="campaign-list"></div>
-    </section>
-
-    <!-- ───────── A+ Content ───────── -->
-    <section class="section" id="aplus">
-      <header class="sec-head">
-        <div class="sec-top"><span>03</span><span id="count-aplus"></span></div>
-        <div class="sec-main">
-          <h2>A+ Content</h2>
-          <p>Designed product pages that sit below the listing on Amazon.</p>
-        </div>
-      </header>
-      <div class="ap reveal">
-        <div class="ap-side">
-          <div class="ap-index" id="ap-index" role="tablist" aria-label="A+ projects"></div>
-          <div class="ap-info" id="ap-info"></div>
-        </div>
-        <div class="ap-stage" id="ap-stage" role="tabpanel"></div>
-      </div>
-    </section>
+    <div id="chapters"></div>
 
     <!-- ───────── About ───────── -->
     <section class="section" id="about">
       <header class="sec-head">
-        <div class="sec-top"><span>04</span><span></span></div>
+        <div class="sec-top"><span data-n="1"></span><span></span></div>
         <div class="sec-main"><h2>About</h2></div>
       </header>
       <div class="about">
@@ -101,7 +64,6 @@
           </figure>
           <p class="about-lead reveal" data-t="bio"></p>
         </div>
-        <div class="xp" id="xp"></div>
         <div class="about-cols" id="about-cols"></div>
       </div>
     </section>
@@ -109,7 +71,7 @@
     <!-- ───────── Contact ───────── -->
     <section class="section contact" id="contact">
       <header class="sec-head">
-        <div class="sec-top"><span>05</span><span></span></div>
+        <div class="sec-top"><span data-n="2"></span><span></span></div>
         <div class="sec-main"><h2>Contact</h2></div>
       </header>
       <a class="mail reveal" data-mail href="#"><span data-t="email"></span><span class="arrow" aria-hidden="true">↗</span></a>

@@ -321,14 +321,30 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
   max-width: 22em; text-wrap: pretty;
 }
 .about-lead em { color: var(--accent); }
-.xp { margin-top: clamp(48px, 7vw, 96px); border-bottom: 1px solid var(--line); }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+#work { padding-top: clamp(56px, 8vw, 112px); }
+.xp { border-bottom: 1px solid var(--line); }
+a.xp-row { color: inherit; text-decoration: none; }
+a.xp-row h3 { transition: color 0.25s; }
+a.xp-row:hover h3 { color: var(--accent); }
+a.xp-row:hover h3 span { color: var(--muted); }
+a.xp-row li { color: var(--muted); }
+
+/* Chapters */
+.chapter .sec-main h2 { font-size: calc(clamp(2.7rem, 6.6vw, 6.25rem) * var(--ds)); line-height: calc(0.94 + var(--dl)); }
+.grp + .grp { margin-top: clamp(48px, 6.5vw, 96px); }
+.grp-head { padding-bottom: 18px; }
+.grp-head h3 { font-size: 19px; font-weight: 500; line-height: 1.3; letter-spacing: -0.01em; }
+.g-rows { --row-h: clamp(150px, 21vw, 290px); display: flex; flex-wrap: wrap; gap: 22px clamp(10px, 1.2vw, 16px); }
+/* Pieces sit at one shared height; a nearly full row stretches a little to line up with the edge. */
+.g-rows .c-item { flex: var(--r) 1 calc(var(--r) * var(--row-h)); max-width: calc(var(--r) * var(--row-h) * 1.28); margin: 0; }
 .xp-row { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px 24px; padding: 22px 0 24px; border-top: 1px solid var(--line); }
 .xp-years { grid-column: 1 / 3; font-family: var(--mono); font-size: 12px; font-weight: var(--label-w); letter-spacing: var(--label-track); text-transform: uppercase; color: var(--muted); padding-top: 5px; }
 .xp-row h3 { grid-column: 3 / 7; font-size: 19px; font-weight: 500; line-height: 1.3; letter-spacing: -0.01em; }
 .xp-row h3 span { display: block; font-size: 15px; font-weight: 400; letter-spacing: 0; color: var(--muted); }
 .xp-row ul { grid-column: 7 / -1; }
 .xp-row li { padding: 3px 0; font-size: 15px; }
-.about-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px 24px; margin-top: clamp(40px, 6vw, 80px); }
+.about-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px 24px; margin-top: clamp(48px, 7vw, 96px); }
 .about-cols h3 { font-weight: 400; color: var(--muted); padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
 .about-cols li { padding: 5px 0; font-size: 15px; }
 

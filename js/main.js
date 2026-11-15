@@ -14,171 +14,156 @@
   document.title = `${P.name}, ${P.role}`;
   $$('[data-t]').forEach(el => { if (P[el.dataset.t] != null) el.textContent = P[el.dataset.t]; });
   $$('[data-mail]').forEach(a => { a.href = 'mailto:' + P.email; });
-  $$('[data-count]').forEach(el => { el.textContent = (D[el.dataset.count] || []).length; });
+  $$('[data-n]').forEach(el => { el.textContent = pad2(D.work.length + +el.dataset.n); });
   $('#yr').textContent = new Date().getFullYear();
   $('#socials').innerHTML = (P.socials || []).map(s => `<li><a href="${esc(s.url)}">${esc(s.label)}</a></li>`).join('');
   $('#socials').hidden = !(P.socials || []).length;
-  $('#xp').innerHTML = (P.experience || []).map(x =>
-    `<div class="xp-row reveal">` +
-      `<span class="xp-years">${esc(x.years)}</span>` +
-      `<h3>${esc(x.role)}<span>${esc(x.field)}</span></h3>` +
-      `<ul>${x.points.map(pt => `<li>${esc(pt)}</li>`).join('')}</ul>` +
-    `</div>`).join('');
   $('#about-cols').innerHTML = (P.about || []).map(([h, items]) =>
     `<div class="reveal"><h3>${esc(h)}</h3><ul>${items.map(it => `<li>${esc(it)}</li>`).join('')}</ul></div>`).join('');
 
   const img = (src, alt) => `<img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async">`;
 
-  /* ── Posters ─────────────────────────────────────────────── */
-  const posterSpec = p => ({ title: p.title, client: p.client, year: p.year, style: (p.art || [])[0], palette: (p.art || [])[1], seed: p.title });
-  const posterMedia = p => p.image ? img(p.image, `${p.title}, poster for ${p.client}`) : Art.poster(posterSpec(p), 500, 700);
+  /* ── Work: one chapter per role, each holding groups of pieces ── */
+  const nameOf = it => it.title || it.label;
+  const ratioOf = it => it.ratio || [5, 7];
 
-  groups.posters = D.posters.map(p => ({
-    ratio: 5 / 7, isImg: !!p.image, html: () => posterMedia(p),
-    kicker: 'Poster', title: p.title, note: p.note,
-    meta: [['For', p.client], ['Year', p.year], ['Format', p.format]]
-  }));
+  // A piece's own image if it has one, otherwise a generated placeholder.
+  const pieceMedia = (it, g, ch, k) => {
+    if (it.image) return img(it.image, `${nameOf(it)}, ${ch.title}`);
+    const [a, b] = ratioOf(it), r = a / b, art = it.art || g.art || ['orb', 'paper'];
+    const spec = { title: nameOf(it), client: ch.title, year: ch.years, style: art[0], palette: art[1], glyph: it.glyph || g.glyph, seed: g.title + nameOf(it) + k };
+    return r >= 1 ? Art.poster(spec, 600 * r, 600) : Art.poster(spec, 600, 600 / r);
+  };
 
-  const initial = D.postersInitial || D.posters.length;
-  $('#count-posters').textContent = `${D.posters.length} pieces`;
-  $('#poster-grid').innerHTML = D.posters.map((p, i) =>
-    `<button class="tile reveal" type="button" data-group="posters" data-i="${i}" style="transition-delay:${(i % 4) * 70}ms"${i >= initial ? ' hidden' : ''}>` +
-      `<span class="tile-art">${posterMedia(p)}</span>` +
-      `<span class="tile-cap"><span class="t">${esc(p.title)}<span class="c">${esc(p.client)}</span></span><span class="m">${esc(p.year)}</span></span>` +
-    `</button>`).join('');
-
-  const more = $('#poster-more');
-  if (D.posters.length > initial) {
-    more.hidden = false;
-    more.textContent = `Show all ${D.posters.length} posters`;
-    more.addEventListener('click', () => {
-      $$('#poster-grid .tile[hidden]').forEach(t => { t.hidden = false; });
-      more.hidden = true;
-    });
-  }
-
-  /* Hero strip: a drifting row of posters (two copies for a seamless loop) */
-  const strip = D.posters.slice(0, 10).map(p => `<div class="m-item">${posterMedia(p)}</div>`).join('');
-  $('#marquee').innerHTML = strip + D.posters.slice(0, 10).map(p => `<div class="m-item">${posterMedia(p)}</div>`).join('');
-
-  /* ── Campaigns ───────────────────────────────────────────── */
-  $('#count-campaigns').textContent = `${D.campaigns.length} projects`;
-  $('#campaign-list').innerHTML = D.campaigns.map((c, ci) => {
-    const key = 'campaign-' + ci;
-    const spec = { title: c.title, client: c.client, year: c.year, style: c.art[0], palette: c.art[1], glyph: c.glyph, seed: c.title };
-    const media = fm => {
-      if (fm.image) return img(fm.image, `${c.title}, ${fm.label}`);
-      const r = fm.ratio[0] / fm.ratio[1];
-      return r >= 1 ? Art.poster(spec, 600 * r, 600) : Art.poster(spec, 600, 600 / r);
-    };
-
-    groups[key] = c.formats.map(fm => ({
-      ratio: fm.ratio[0] / fm.ratio[1], isImg: !!fm.image, html: () => media(fm),
-      kicker: 'Campaign', title: c.title, note: c.summary,
-      meta: [['Client', c.client], ['Year', c.year], ['Format', `${fm.label}, ${fm.ratio[0]}:${fm.ratio[1]}`]]
-    }));
-
-    // First format gets its own row; the rest are packed into equal-height rows.
-    const rows = [[0]];
-    let row = [], sum = 0;
-    c.formats.forEach((fm, i) => {
-      if (i === 0) return;
-      const r = fm.ratio[0] / fm.ratio[1];
-      if (row.length && sum + r > 3.3) { rows.push(row); row = []; sum = 0; }
-      row.push(i); sum += r;
-    });
-    if (row.length) rows.push(row);
-
-    const rowsHTML = rows.map(idxs => {
-      const total = idxs.reduce((n, i) => n + c.formats[i].ratio[0] / c.formats[i].ratio[1], 0);
-      // A short final row stays left-aligned at a sensible height instead of blowing up.
-      const filler = idxs.length > 1 && total < 1.6 ? `<div style="flex:${(2.2 - total).toFixed(3)} 1 0%"></div>` : '';
-      return '<div class="c-row">' + idxs.map(i => {
-        const fm = c.formats[i], r = fm.ratio[0] / fm.ratio[1];
-        return `<figure class="c-item" style="flex:${r.toFixed(4)} 1 0%">` +
-          `<button class="c-art" type="button" data-group="${key}" data-i="${i}" style="aspect-ratio:${fm.ratio[0]}/${fm.ratio[1]}" aria-label="${esc(c.title)}, ${esc(fm.label)}">${media(fm)}</button>` +
-          `<figcaption><span>${esc(fm.label)}</span><span>${fm.ratio[0]}:${fm.ratio[1]}</span></figcaption>` +
-        `</figure>`;
-      }).join('') + filler + '</div>';
-    }).join('');
-
-    return `<article class="campaign">` +
-      `<div class="c-info reveal">` +
-        `<p class="c-meta"><span>C/${pad2(ci + 1)}</span><span>${esc(c.client)}</span><span>${esc(c.year)}</span></p>` +
-        `<h3>${esc(c.title)}</h3><p>${esc(c.summary)}</p>` +
-        `<ul class="c-scope">${c.scope.map(s => `<li>${esc(s)}</li>`).join('')}</ul>` +
-      `</div>` +
-      `<div class="c-media reveal">${rowsHTML}</div>` +
-    `</article>`;
-  }).join('');
-
-  /* ── A+ content ──────────────────────────────────────────── */
-  // One entry per content module: the designer's own images if given, placeholders if not.
+  // One entry per content module of a product page.
   const apMods = a => a.modules
     ? a.modules.map((src, i) => img(src, `${a.brand} ${a.title}, module ${i + 1}`))
     : Art.aplusModules(a);
   const apCount = a => (a.modules || a.layout || Art.MODULES).length;
-  const apMeta = a => [['Brand', a.brand], ['Category', a.category], ['Channel', a.marketplace], ['Role', a.role],
+  const apMeta = a => [['Brand', a.brand], ['Channel', a.marketplace], ['Role', a.role],
     ['Modules', String(apCount(a))], ['Year', a.year], ['Result', a.result]].filter(m => m[1]);
   const metaHTML = rows => rows.map(m => `<div><dt>${esc(m[0])}</dt><dd>${esc(m[1])}</dd></div>`).join('');
 
-  $('#count-aplus').textContent = `${D.aplus.length} product pages`;
-  groups.aplus = D.aplus.map(a => ({
-    page: true, html: () => apMods(a).join(''),
-    kicker: 'A+ Content', title: a.title, note: a.summary, meta: apMeta(a)
-  }));
+  const reel = []; // portrait pieces for the strip under the intro
+  const pageMounts = [];
 
-  const apIndex = $('#ap-index'), apStage = $('#ap-stage'), apInfo = $('#ap-info');
-  apIndex.innerHTML = D.aplus.map((a, i) =>
-    `<button class="ap-tab" type="button" role="tab" id="ap-tab-${i}" aria-controls="ap-stage" aria-selected="false" tabindex="-1" data-ap="${i}">` +
-      `<span class="n">${pad2(i + 1)}</span>` +
-      `<span class="t">${esc(a.title)}<span class="c">${esc(a.brand)}, ${esc(a.category)}</span></span>` +
-      `<span class="m">${apCount(a)} modules</span>` +
-    `</button>`).join('');
+  const groupHTML = (g, gi, ch) => {
+    const key = `${ch.id}-${gi}`;
+    let body;
 
-  // Hovering the page preview scrolls it to the bottom; this measures how far.
-  const apRO = 'ResizeObserver' in window ? new ResizeObserver(() => {
-    const view = $('.ap-view', apStage), stack = view && view.firstElementChild;
-    if (stack) view.style.setProperty('--shift', Math.min(0, view.clientHeight - stack.offsetHeight) + 'px');
-  }) : null;
+    if (g.layout === 'pages') {
+      groups[key] = g.items.map(a => ({
+        page: true, html: () => apMods(a).join(''),
+        kicker: ch.title, title: a.title, note: a.summary, meta: apMeta(a)
+      }));
+      pageMounts.push({ key, items: g.items });
+      body = `<div class="ap reveal" data-ap="${key}">` +
+        `<div class="ap-side"><div class="ap-index" role="tablist" aria-label="${esc(g.title)}"></div><div class="ap-info"></div></div>` +
+        `<div class="ap-stage" role="tabpanel" id="ap-stage-${key}"></div></div>`;
+    } else {
+      groups[key] = g.items.map((it, k) => ({
+        ratio: ratioOf(it)[0] / ratioOf(it)[1], isImg: !!it.image, html: () => pieceMedia(it, g, ch, k),
+        kicker: ch.title, title: nameOf(it), note: it.note,
+        meta: [['Role', ch.role], ['Years', ch.years], ['Work', g.title]]
+      }));
+      if (g.layout === 'tiles') {
+        g.items.forEach((it, k) => reel.push(pieceMedia(it, g, ch, k)));
+        body = `<div class="poster-grid">` + g.items.map((it, k) =>
+          `<button class="tile reveal" type="button" data-group="${key}" data-i="${k}" style="transition-delay:${(k % 4) * 70}ms">` +
+            `<span class="tile-art">${pieceMedia(it, g, ch, k)}</span>` +
+            `<span class="tile-cap"><span class="t">${esc(nameOf(it))}</span></span>` +
+          `</button>`).join('') + `</div>`;
+      } else {
+        const tall = g.items.findIndex(it => ratioOf(it)[0] < ratioOf(it)[1]);
+        if (tall >= 0) reel.push(pieceMedia(Object.assign({}, g.items[tall], { ratio: [5, 7] }), g, ch, tall));
+        body = `<div class="g-rows reveal">` + g.items.map((it, k) => {
+          const [a, b] = ratioOf(it);
+          return `<figure class="c-item" style="--r:${(a / b).toFixed(4)}">` +
+            `<button class="c-art" type="button" data-group="${key}" data-i="${k}" style="aspect-ratio:${a}/${b}" aria-label="${esc(nameOf(it))}">${pieceMedia(it, g, ch, k)}</button>` +
+            `<figcaption><span>${esc(nameOf(it))}</span></figcaption>` +
+          `</figure>`;
+        }).join('') + `</div>`;
+      }
+    }
+    return `<div class="grp"><div class="grp-head"><h3>${esc(g.title)}</h3></div>${body}</div>`;
+  };
 
-  function selectAp(i) {
-    const a = D.aplus[i];
-    $$('.ap-tab', apIndex).forEach((t, k) => {
-      t.setAttribute('aria-selected', String(k === i));
-      t.tabIndex = k === i ? 0 : -1;
+  $('#chapters').innerHTML = D.work.map((ch, ci) =>
+    `<section class="section chapter" id="work-${esc(ch.id)}">` +
+      `<header class="sec-head">` +
+        `<div class="sec-top"><span>${pad2(ci + 1)}</span><span>${esc(ch.role)}, ${esc(ch.years)}</span></div>` +
+        `<div class="sec-main"><h2>${esc(ch.title)}</h2><p>${esc(ch.summary)}</p></div>` +
+      `</header>` +
+      ch.groups.map((g, gi) => groupHTML(g, gi, ch)).join('') +
+    `</section>`).join('');
+
+  /* Overview: the three roles at a glance, each linking to its chapter */
+  $('#work-index').innerHTML = D.work.map(ch =>
+    `<a class="xp-row reveal" href="#work-${esc(ch.id)}">` +
+      `<span class="xp-years">${esc(ch.years)}</span>` +
+      `<h3>${esc(ch.title)}<span>${esc(ch.role)}</span></h3>` +
+      `<ul>${ch.groups.map(g => `<li>${esc(g.title)}</li>`).join('')}</ul>` +
+    `</a>`).join('');
+
+  /* Strip under the intro: a drifting row of pieces (two copies for a seamless loop) */
+  const strip = reel.slice(0, 10).map(m => `<div class="m-item">${m}</div>`).join('');
+  $('#marquee').innerHTML = strip + strip;
+
+  /* ── Product pages: list on the left, scrolling preview on the right ── */
+  pageMounts.forEach(({ key, items }) => {
+    const el = $(`[data-ap="${key}"]`);
+    const apIndex = $('.ap-index', el), apStage = $('.ap-stage', el), apInfo = $('.ap-info', el);
+    apIndex.innerHTML = items.map((a, i) =>
+      `<button class="ap-tab" type="button" role="tab" id="ap-tab-${key}-${i}" aria-controls="ap-stage-${key}" aria-selected="false" tabindex="-1" data-ap-i="${i}">` +
+        `<span class="n">${pad2(i + 1)}</span>` +
+        `<span class="t">${esc(a.title)}${a.category ? `<span class="c">${esc(a.category)}</span>` : ''}</span>` +
+        `<span class="m">${apCount(a)} modules</span>` +
+      `</button>`).join('');
+
+    // Hovering the page preview scrolls it to the bottom; this measures how far.
+    const apRO = 'ResizeObserver' in window ? new ResizeObserver(() => {
+      const view = $('.ap-view', apStage), stack = view && view.firstElementChild;
+      if (stack) view.style.setProperty('--shift', Math.min(0, view.clientHeight - stack.offsetHeight) + 'px');
+    }) : null;
+
+    const select = i => {
+      const a = items[i];
+      $$('.ap-tab', apIndex).forEach((t, k) => {
+        t.setAttribute('aria-selected', String(k === i));
+        t.tabIndex = k === i ? 0 : -1;
+      });
+      apStage.setAttribute('aria-labelledby', `ap-tab-${key}-${i}`);
+      apStage.innerHTML =
+        `<div class="ap-stage-top"><span>${esc(a.brand)}</span><span>${esc(a.marketplace)}</span></div>` +
+        `<button class="ap-frame" type="button" data-group="${key}" data-i="${i}" aria-label="Open the full ${esc(a.title)} page">` +
+          `<span class="ap-bar"><i></i><i></i><i></i><span>${esc(a.brand)} / ${esc(a.title)}</span></span>` +
+          `<span class="ap-view"><span class="ap-stack">${apMods(a).join('')}</span></span>` +
+        `</button>` +
+        `<div class="ap-strip">` + apMods(a).map((m, k) =>
+          `<button class="ap-thumb" type="button" data-group="${key}" data-i="${i}" data-mod="${k}" aria-label="Open module ${k + 1} of ${esc(a.title)}">${m}</button>`).join('') +
+        `</div>`;
+      apInfo.innerHTML =
+        `<p class="ap-summary">${esc(a.summary)}</p>` +
+        `<dl class="ap-meta">${metaHTML(apMeta(a).filter(m => ['Year', 'Role', 'Result'].includes(m[0])))}</dl>` +
+        `<button class="btn" type="button" data-group="${key}" data-i="${i}">View full page ↗</button>`;
+      if (apRO) { apRO.disconnect(); apRO.observe($('.ap-view', apStage)); apRO.observe($('.ap-stack', apStage)); }
+    };
+
+    apIndex.addEventListener('click', e => {
+      const t = e.target.closest('.ap-tab');
+      if (t) select(+t.dataset.apI);
     });
-    apStage.setAttribute('aria-labelledby', 'ap-tab-' + i);
-    apStage.innerHTML =
-      `<div class="ap-stage-top"><span>${esc(a.brand)}</span><span>${esc(a.marketplace)}</span></div>` +
-      `<button class="ap-frame" type="button" data-group="aplus" data-i="${i}" aria-label="Open the full ${esc(a.title)} page">` +
-        `<span class="ap-bar"><i></i><i></i><i></i><span>${esc(a.brand)} / ${esc(a.title)}</span></span>` +
-        `<span class="ap-view"><span class="ap-stack">${apMods(a).join('')}</span></span>` +
-      `</button>` +
-      `<div class="ap-strip">` + apMods(a).map((m, k) =>
-        `<button class="ap-thumb" type="button" data-group="aplus" data-i="${i}" data-mod="${k}" aria-label="Open module ${k + 1} of ${esc(a.title)}">${m}</button>`).join('') +
-      `</div>`;
-    apInfo.innerHTML =
-      `<p class="ap-summary">${esc(a.summary)}</p>` +
-      `<dl class="ap-meta">${metaHTML(apMeta(a).filter(m => ['Year', 'Role', 'Result'].includes(m[0])))}</dl>` +
-      `<button class="btn" type="button" data-group="aplus" data-i="${i}">View full page ↗</button>`;
-    if (apRO) { apRO.disconnect(); apRO.observe($('.ap-view', apStage)); apRO.observe($('.ap-stack', apStage)); }
-  }
-
-  apIndex.addEventListener('click', e => {
-    const t = e.target.closest('.ap-tab');
-    if (t) selectAp(+t.dataset.ap);
+    apIndex.addEventListener('keydown', e => {
+      const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+      if (!step) return;
+      e.preventDefault();
+      const tabs = $$('.ap-tab', apIndex), cur = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+      const next = (cur + step + tabs.length) % tabs.length;
+      select(next);
+      tabs[next].focus();
+    });
+    if (items.length) select(0);
   });
-  apIndex.addEventListener('keydown', e => {
-    const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
-    if (!step) return;
-    e.preventDefault();
-    const tabs = $$('.ap-tab', apIndex), cur = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
-    const next = (cur + step + tabs.length) % tabs.length;
-    selectAp(next);
-    tabs[next].focus();
-  });
-  if (D.aplus.length) selectAp(0);
 
   /* ── Viewer ──────────────────────────────────────────────── */
   const lb = $('#lb'), lbMedia = $('.lb-media', lb), lbStage = $('.lb-stage', lb);
@@ -196,7 +181,7 @@
     $('.lb-kicker', lb).textContent = it.kicker || '';
     $('.lb-title', lb).textContent = it.title;
     $('.lb-note', lb).textContent = it.note || '';
-    $('.lb-meta', lb).innerHTML = (it.meta || []).filter(m => m[1]).map(m => `<div><dt>${esc(m[0])}</dt><dd>${esc(m[1])}</dd></div>`).join('');
+    $('.lb-meta', lb).innerHTML = metaHTML((it.meta || []).filter(m => m[1]));
     $('.lb-nav', lb).hidden = n < 2;
     lbStage.scrollTop = 0;
   }
@@ -251,7 +236,7 @@
   setType(curType());
 
   /* Switching fonts changes how tall things are. Hold whatever is being looked at in place. */
-  const ANCHORS = '.hero h1, .sec-head, .tile, .c-info, .c-item, .ap-tab, .ap-stage, .portrait, .about-cols > div, .mail, .site-foot';
+  const ANCHORS = '.hero h1, .sec-head, .xp-row, .grp-head, .tile, .c-item, .ap-tab, .ap-stage, .portrait, .about-cols > div, .mail, .site-foot';
   const anchor = () => {
     const y = window.innerHeight * 0.35;
     let best = null, bestD = Infinity;
@@ -302,7 +287,8 @@
     const links = $$('.nav a');
     const spy = new IntersectionObserver(entries => entries.forEach(e => {
       if (!e.isIntersecting) return;
-      links.forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + e.target.id ? 'true' : 'false'));
+      const id = e.target.id.indexOf('work') === 0 ? 'work' : e.target.id;
+      links.forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + id ? 'true' : 'false'));
     }), { rootMargin: '-45% 0px -50% 0px' });
     $$('main section[id]').forEach(s => spy.observe(s));
   } else {
