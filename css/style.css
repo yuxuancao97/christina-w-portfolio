@@ -302,8 +302,20 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 /* ─────────────────────────────────────────────
    About
    ───────────────────────────────────────────── */
+.about-top { display: grid; grid-template-columns: repeat(12, 1fr); column-gap: 24px; align-items: end; }
+.portrait { grid-column: 1 / 5; margin: 0; }
+.portrait img {
+  display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; object-position: 50% 0;
+  border-radius: 14px; background: #fff;
+}
+.portrait figcaption {
+  display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 12px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+}
+.portrait figcaption > span:first-child { color: var(--ink); }
 .about-lead {
-  font-family: var(--serif); font-size: clamp(1.9rem, 4.4vw, 4.2rem); line-height: 1.04; letter-spacing: -0.015em;
+  grid-column: 6 / -1;
+  font-family: var(--serif); font-size: clamp(1.9rem, 3.7vw, 3.5rem); line-height: 1.06; letter-spacing: -0.015em;
   max-width: 22em; text-wrap: pretty;
 }
 .about-lead em { color: var(--accent); }
@@ -401,6 +413,9 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
   .only-m { display: inline; }
   .hero-intro, .facts { grid-column: 1 / -1; }
   .sec-main h2, .sec-main p { grid-column: 1 / -1; }
+  .about-top { row-gap: 28px; }
+  .portrait { grid-column: 1 / 8; }
+  .about-lead { grid-column: 1 / -1; }
   .campaign { display: block; }
   .ap { display: flex; flex-direction: column; align-items: stretch; gap: 20px; }
   .ap-side { display: contents; }
