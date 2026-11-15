@@ -3,6 +3,7 @@
 
   const D = window.PORTFOLIO, Art = window.Art;
   const root = document.documentElement;
+  root.classList.add('js');
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const esc = Art.esc;
@@ -201,12 +202,16 @@
   });
 
   /* ── Handwriting ─────────────────────────────────────────────
-     Each letter is uncovered left to right, one after another, so a line reads as if
-     it is being written. data-write says what drives it:
-       load   plays once when the page opens
+     A line is uncovered letter by letter with a soft, slanted edge, paced like a pen:
+     wide letters take longer, each letter speeds up and slows down, and there is a
+     short lift between letters and a longer one between words.
+     data-write says what moves the pen:
+       pin    the cover: held in place while scrolling writes the signature
        scroll follows the scroll position as the line moves up the screen
        view   plays once when the line comes into view                         */
   const clamp01 = v => Math.max(0, Math.min(1, v));
+  const penEase = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
   const writers = $$('[data-write]').map(el => {
     const text = el.textContent.trim();
     el.textContent = '';
@@ -217,23 +222,55 @@
     ink.innerHTML = text.split(/\s+/).map(w =>
       `<span class="w">${Array.from(w).map(c => `<span class="ch">${esc(c)}</span>`).join('')}</span>`).join(' ');
     el.append(sr, ink);
-    const chars = $$('.ch', ink), n = chars.length;
-    const span = Math.min(1, 2.4 / n); // share of the whole line one letter takes to appear
-    const draw = p => chars.forEach((c, i) => {
-      const q = clamp01((p - (i / n) * (1 - span)) / span);
-      c.style.clipPath = q >= 1 ? '' : `inset(-30% ${((1.3 - 1.6 * q) * 100).toFixed(1)}% -30% -30%)`;
-      c.style.visibility = q <= 0 ? 'hidden' : '';
+    const chars = $$('.ch', ink);
+    const w = { el, mode: el.dataset.write, chars, n: chars.length, shown: 0, target: 0, plan: [] };
+
+    // when each letter starts and how long it takes, as shares of the whole line
+    w.pace = () => {
+      const widths = chars.map(c => c.getBoundingClientRect().width || 1);
+      const avg = widths.reduce((a, b) => a + b, 0) / widths.length;
+      let t = 0;
+      w.plan = chars.map((c, i) => {
+        const ch = c.textContent;
+        let d = 0.55 * avg + 0.45 * widths[i];            // wider letters take longer
+        if (/[A-Z]/.test(ch)) d *= 1.3;                    // capitals are drawn with more care
+        if (/[.,;:'’]/.test(ch)) d = avg * 0.35;           // a dot or comma is a flick
+        const start = t;
+        const lastInWord = !c.nextElementSibling;
+        t += d + avg * (lastInWord ? 0.95 : 0.16);         // pen lift: long between words, short between letters
+        return { start, d };
+      });
+      w.plan.forEach(pl => { pl.start /= t; pl.d /= t; });
+    };
+    w.draw = p => chars.forEach((c, i) => {
+      const pl = w.plan[i];
+      const q = p >= 1 ? 1 : penEase(clamp01((p - pl.start) / pl.d));
+      if (q === c._q) return;
+      c._q = q;
+      c.style.setProperty('--q', q.toFixed(4));
+      c.classList.toggle('done', q >= 1);
     });
-    draw(0);
-    return { el, mode: el.dataset.write, draw, shown: 0, target: 0, n };
+    w.pace();
+    w.draw(0);
+    return w;
   });
 
-  const noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // play a line over time; roughly constant writing speed whatever its length
+  // The writing runs even when the device asks for reduced motion (the owner's choice): letters
+  // appear in place, nothing slides or zooms. To honour the setting again, use
+  // window.matchMedia('(prefers-reduced-motion: reduce)').matches here.
+  const noMotion = false;
+  const pin = $('.cover-pin');
+  // how far through the held cover the page has scrolled, 0 to 1
+  const pinProgress = () => {
+    const r = pin.getBoundingClientRect(), travel = r.height - window.innerHeight;
+    return travel > 0 ? clamp01(-r.top / travel) : 1;
+  };
+
+  // play a line over time; the pace plan gives it its rhythm
   const play = w => {
-    if (w.playing || w.shown >= 1) return;
+    if (!w || w.playing || w.shown >= 1) return;
     w.playing = true;
-    const ms = Math.max(1500, w.n * 120), t0 = performance.now();
+    const ms = 500 + w.n * 190, t0 = performance.now();
     const tick = now => {
       w.shown = clamp01((now - t0) / ms);
       w.draw(w.shown);
@@ -244,10 +281,8 @@
 
   if (noMotion) {
     writers.forEach(w => w.draw(1));
+    root.classList.add('intro-done', 'still');
   } else {
-    const ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
-    ready.then(() => setTimeout(() => writers.filter(w => w.mode === 'load').forEach(play), 250));
-
     if ('IntersectionObserver' in window) {
       const seen = new IntersectionObserver(entries => entries.forEach(e => {
         if (e.isIntersecting) play(writers.find(w => w.el === e.target));
@@ -258,15 +293,19 @@
     }
 
     // scroll-driven lines: the pen follows the scroll, easing to catch up, and never un-writes
-    const scrolled = writers.filter(w => w.mode === 'scroll');
+    const scrolled = writers.filter(w => w.mode === 'scroll' || w.mode === 'pin');
     let ticking = false;
     const follow = () => {
       let moving = false;
+      const vh = window.innerHeight, pp = pinProgress();
+      // the menu appears once the signature is done and steps back if the reader returns to the cover
+      root.classList.toggle('intro-done', pp > 0.8);
       scrolled.forEach(w => {
-        const r = w.el.getBoundingClientRect(), vh = window.innerHeight;
-        w.target = Math.max(w.target, clamp01((vh * 0.9 - r.top) / (vh * 0.35 + r.height)));
-        if (w.target - w.shown > 0.001) { w.shown += (w.target - w.shown) * 0.14; w.draw(w.shown); moving = true; }
-        else if (w.shown < w.target) { w.shown = w.target; w.draw(w.shown); }
+        const r = w.el.getBoundingClientRect();
+        const at = w.mode === 'pin' ? pp / 0.7 : (vh * 0.9 - r.top) / (vh * 0.4 + r.height);
+        w.target = Math.max(w.target, clamp01(at));
+        if (w.target - w.shown > 0.0015) { w.shown += (w.target - w.shown) * 0.085; w.draw(w.shown); moving = true; }
+        else if (w.shown !== w.target) { w.shown = w.target; w.draw(w.shown); }
       });
       ticking = moving;
       if (moving) requestAnimationFrame(follow);
@@ -274,16 +313,26 @@
     const kick = () => { if (!ticking) { ticking = true; requestAnimationFrame(follow); } };
     window.addEventListener('scroll', kick, { passive: true });
     window.addEventListener('resize', kick);
+
+    const ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    ready.then(() => {
+      writers.forEach(w => { w.pace(); w.draw(w.shown); }); // letter widths are only right once the font is in
+      // the pen makes its first mark on its own, then waits for the reader to scroll
+      setTimeout(() => {
+        writers.filter(w => w.mode === 'pin').forEach(w => { w.target = Math.max(w.target, 0.2); });
+        kick();
+      }, 450);
+    });
     kick();
   }
 
   /* ── Page behaviour ──────────────────────────────────────── */
-  // The header steps aside while scrolling down through the work and returns on the way up.
-  const head = $('.site-head');
+  // Over the black work chapters the menu steps aside while scrolling down and returns on the way up.
+  const head = $('.site-head'), chaptersEl = $('#chapters');
   let lastY = window.scrollY;
   window.addEventListener('scroll', () => {
-    const y = window.scrollY;
-    head.classList.toggle('away', y > lastY && y > 160);
+    const y = window.scrollY, r = chaptersEl.getBoundingClientRect();
+    head.classList.toggle('away', y > lastY && r.top < 60 && r.bottom > 60);
     lastY = y;
   }, { passive: true });
 

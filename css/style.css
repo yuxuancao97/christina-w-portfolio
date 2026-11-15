@@ -75,13 +75,22 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 .hand { font-family: var(--hand); font-weight: 400; line-height: 0.86; letter-spacing: -0.01em; }
 /* handwriting animation: words stay whole when a line wraps, letters are uncovered one by one */
 .hand .w { display: inline-block; white-space: nowrap; }
-.hand .ch { display: inline-block; }
+.hand .ch {
+  /* room for strokes that reach past the letter's own box, so the moving edge does not clip them */
+  display: inline-block; padding: 0.32em 0.2em; margin: -0.32em -0.2em;
+  --edge: calc(var(--q, 1) * 150% - 40%);
+  -webkit-mask-image: linear-gradient(104deg, #000 var(--edge), transparent calc(var(--edge) + 16%));
+  mask-image: linear-gradient(104deg, #000 var(--edge), transparent calc(var(--edge) + 16%));
+}
+.hand .ch.done { -webkit-mask-image: none; mask-image: none; }
 .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .slab { font-family: var(--slab); }
 .slab-h { font-family: var(--slab); font-size: 19px; font-weight: 700; line-height: 1.2; letter-spacing: 0.005em; }
 
-.reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
-.reveal.in { opacity: 1; transform: none; }
+/* Things materialise as they scroll into view */
+.reveal { opacity: 0; transform: translateY(26px); transition: opacity 1s var(--ease), transform 1s var(--ease), filter 1s var(--ease); }
+.page .reveal { filter: blur(7px); }
+.reveal.in { opacity: 1; transform: none; filter: none; }
 
 /* ─────────────────────────────────────────────
    Header: tiny running labels that read on paper and on black
@@ -91,10 +100,12 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
   padding: calc(20px + env(safe-area-inset-top, 0px)) var(--pad) 12px;
   font-family: var(--slab); font-size: 14px; color: #fff; mix-blend-mode: difference;
-  transition: transform 0.45s var(--ease), opacity 0.3s;
+  transition: transform 0.45s var(--ease), opacity 0.6s;
 }
+/* the cover shows only the signature and the portrait; the menu arrives once the signature is written */
+.js:not(.intro-done) .site-head { opacity: 0; pointer-events: none; }
 .site-head.away { transform: translateY(-100%); opacity: 0; }
-.site-head:focus-within { transform: none; opacity: 1; }
+.site-head:focus-within { transform: none; opacity: 1; pointer-events: auto; }
 .brand { text-decoration: none; white-space: nowrap; }
 .brand b { font-weight: 700; }
 .nav { display: flex; gap: clamp(18px, 2.6vw, 40px); }
@@ -116,25 +127,21 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 }
 .page-top .slab-h { color: var(--ink); }
 
-/* Cover */
+/* Cover: held in place while scrolling writes the signature */
+.js .cover-pin { height: 250svh; }
+.js.still .cover-pin { height: auto; }
 .cover {
+  position: sticky; top: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-  min-height: 100svh; padding-top: 84px; padding-bottom: 0; overflow: hidden;
+  height: 100svh; min-height: 0; padding-top: 40px; padding-bottom: 0; overflow: hidden;
+  background: var(--bg); /* the portrait blends into this, which is what makes it read as a cut-out */
 }
 .cover-title {
   position: relative; z-index: 2; margin-bottom: -0.2em; white-space: nowrap; text-align: center;
   font-size: clamp(4.4rem, 21vw, 19rem); line-height: 0.74;
 }
-.cutout { width: min(64svh, 88vw); flex: none; }
+.cutout { width: min(66svh, 88vw); flex: none; }
 .cutout img { width: 100%; height: auto; filter: grayscale(1) contrast(1.08); mix-blend-mode: multiply; }
-.cover-foot {
-  position: absolute; left: var(--pad); right: var(--pad); bottom: 30px; z-index: 3;
-  display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;
-  font-family: var(--slab); font-size: 13px; line-height: 1.35; color: var(--muted);
-}
-.cover-foot span { display: block; }
-.cover-foot a { text-decoration: none; }
-.cover-foot .r { text-align: right; }
 
 /* Hello */
 .hello { display: grid; grid-template-columns: repeat(12, 1fr); gap: 40px 24px; align-items: start; padding-top: clamp(96px, 13vw, 200px); padding-bottom: clamp(96px, 13vw, 200px); }
@@ -326,8 +333,6 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
   .site-head { font-size: 13px; }
   .brand { font-size: 0; }
   .brand b { font-size: 13px; }
-  .cover { padding-top: 72px; }
-  .cover-foot { position: static; order: -1; width: 100%; margin-bottom: auto; padding-top: 8px; font-size: 12px; }
   .rs-row .k { min-width: 8.6em; font-size: 13px; }
   .rs-row .k.tag { margin-right: calc(8.6em - 26px); }
   #work-index a { grid-template-columns: 2.2em 1fr auto; row-gap: 0; padding: 10px 0; }
@@ -344,7 +349,8 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* things still fade in, but nothing slides, blurs or glides */
   html { scroll-behavior: auto; }
-  .reveal { opacity: 1; transform: none; transition: none; }
+  .reveal, .page .reveal { transform: none; filter: none; transition: opacity 1s var(--ease); }
   .lb[open] { animation: none; }
 }
