@@ -218,61 +218,6 @@
     try { localStorage.setItem('theme', root.dataset.theme); } catch (e) {}
   });
 
-  /* Type direction switcher (mock-up only: remove once a direction is chosen) */
-  const TYPES = [['editorial', 'Editorial'], ['swiss', 'Swiss'], ['poster', 'Poster'], ['couture', 'Couture']];
-  const typebar = document.createElement('div');
-  typebar.className = 'typebar';
-  typebar.setAttribute('role', 'group');
-  typebar.setAttribute('aria-label', 'Type direction');
-  typebar.innerHTML = '<span>Type <kbd>T</kbd></span>' + TYPES.map(([k, l], i) =>
-    `<button type="button" data-type-opt="${k}" title="Press ${i + 1}">${l}</button>`).join('');
-  document.body.appendChild(typebar);
-  const curType = () => root.dataset.type || 'editorial';
-  const setType = k => {
-    if (!TYPES.some(t => t[0] === k)) k = 'editorial';
-    if (k === 'editorial') delete root.dataset.type; else root.dataset.type = k;
-    $$('button', typebar).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.typeOpt === k)));
-  };
-  setType(curType());
-
-  /* Switching fonts changes how tall things are. Hold whatever is being looked at in place. */
-  const ANCHORS = '.hero h1, .sec-head, .xp-row, .grp-head, .tile, .c-item, .ap-tab, .ap-stage, .portrait, .about-cols > div, .mail, .site-foot';
-  const anchor = () => {
-    const y = window.innerHeight * 0.35;
-    let best = null, bestD = Infinity;
-    $$(ANCHORS).forEach(el => {
-      if (!el.offsetParent) return;
-      const r = el.getBoundingClientRect();
-      const d = r.top <= y && r.bottom >= y ? 0 : Math.min(Math.abs(r.top - y), Math.abs(r.bottom - y));
-      if (d < bestD) { bestD = d; best = el; }
-    });
-    return best && { el: best, top: best.getBoundingClientRect().top };
-  };
-  const hold = a => { if (a) window.scrollBy({ top: a.el.getBoundingClientRect().top - a.top, behavior: 'instant' }); };
-  let switchId = 0;
-  const switchType = k => {
-    const a = anchor(), id = ++switchId;
-    setType(k);
-    try { localStorage.setItem('type', curType()); } catch (err) {}
-    hold(a);
-    /* a font used for the first time arrives a moment later and shifts things again */
-    const again = () => { if (id === switchId) hold(a); };
-    if (document.fonts && document.fonts.ready) requestAnimationFrame(() => document.fonts.ready.then(again));
-    setTimeout(again, 400);
-  };
-  typebar.addEventListener('click', e => {
-    const b = e.target.closest('button');
-    if (b) switchType(b.dataset.typeOpt);
-  });
-  /* T = next, Shift+T = previous, 1 to 4 = jump straight to one */
-  document.addEventListener('keydown', e => {
-    const typing = e.target && e.target.closest && e.target.closest('input, textarea, select, [contenteditable]');
-    if (e.metaKey || e.ctrlKey || e.altKey || typing) return;
-    const i = TYPES.findIndex(t => t[0] === curType());
-    if (e.key === 't' || e.key === 'T') switchType(TYPES[(i + (e.shiftKey ? TYPES.length - 1 : 1)) % TYPES.length][0]);
-    else if (e.key >= '1' && e.key <= String(TYPES.length)) switchType(TYPES[+e.key - 1][0]);
-  });
-
   const head = $('.site-head');
   const onScroll = () => head.classList.toggle('scrolled', window.scrollY > 8);
   window.addEventListener('scroll', onScroll, { passive: true });
