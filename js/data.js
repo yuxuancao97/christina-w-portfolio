@@ -61,7 +61,7 @@ window.PORTFOLIO = {
       title: 'Open Late',
       client: 'Halle Contemporary',
       year: '2026',
-      summary: 'A summer of late openings at the museum. One sun-coloured mark carries the idea from the building banner down to a phone screen.',
+      summary: 'Campaign for a summer of late openings at the museum.',
       scope: ['Key visual', 'OOH', 'Social toolkit', 'Motion', 'Signage'],
       art: ['rays', 'cobalt'],
       formats: [
@@ -76,7 +76,7 @@ window.PORTFOLIO = {
       title: 'Fresh Daily',
       client: 'Greenhouse Market',
       year: '2025',
-      summary: 'Seasonal produce campaign for a neighbourhood grocer. Modular shapes swap with the harvest, so the system refreshes itself every month.',
+      summary: 'Seasonal produce campaign for a neighbourhood grocer.',
       scope: ['Key visual', 'In-store', 'Social toolkit', 'Packaging stickers'],
       art: ['blocks', 'forest'],
       formats: [
@@ -91,7 +91,7 @@ window.PORTFOLIO = {
       title: 'Run the River',
       client: 'Riverside Run Club',
       year: '2025',
-      summary: 'Identity and launch campaign for a 10K along the waterfront. The course line became the graphic, printed on everything from bibs to bus shelters.',
+      summary: 'Identity and launch campaign for a 10K along the waterfront.',
       scope: ['Key visual', 'OOH', 'Race kit', 'Social toolkit'],
       art: ['bands', 'tang'],
       formats: [
@@ -106,7 +106,7 @@ window.PORTFOLIO = {
       title: 'The Big Eleven',
       client: 'Marketplace seasonal sale',
       year: '2024',
-      summary: 'Sale-event graphics for a homeware brand: storefront banners, deal badges and listing tiles built from one loud numeral so shoppers spot the offer anywhere.',
+      summary: 'Sale-event graphics for a homeware brand.',
       scope: ['Storefront banners', 'Deal badges', 'Listing tiles', 'Email', 'Social ads'],
       art: ['glyph', 'butter'], glyph: '11',
       formats: [
@@ -124,9 +124,9 @@ window.PORTFOLIO = {
       title: 'Glow C Serum',
       brand: 'Sola Skin',
       category: 'Beauty',
-      marketplace: 'Amazon · Premium A+',
+      marketplace: 'Amazon Premium A+',
       year: '2026',
-      summary: 'Launch page for a vitamin C serum. Warm tonal palette, one hero claim, and a comparison chart that routes shoppers across the range.',
+      summary: 'Launch page for a vitamin C serum.',
       product: 'bottle', palette: 'apricot', style: 'arcs',
       copy: {
         headline: 'Glow that gets up early.',
@@ -151,9 +151,9 @@ window.PORTFOLIO = {
       title: 'Ceremonial Matcha',
       brand: 'Kettle & Fern',
       category: 'Grocery',
-      marketplace: 'Amazon · A+ Content',
+      marketplace: 'Amazon A+',
       year: '2025',
-      summary: 'Product story for a stone-ground matcha. The page slows down on purpose: origin first, preparation second, range last.',
+      summary: 'Product page for a stone-ground matcha.',
       product: 'jar', palette: 'matcha', style: 'orb',
       copy: {
         headline: 'A calmer kind of energy.',
@@ -179,9 +179,9 @@ window.PORTFOLIO = {
       title: 'Trail Flask 750',
       brand: 'Nordlys',
       category: 'Outdoors',
-      marketplace: 'Amazon · Premium A+',
+      marketplace: 'Amazon Premium A+',
       year: '2025',
-      summary: 'Feature-led page for an insulated bottle. Cool palette, specification modules and a range chart built for quick mobile scanning.',
+      summary: 'Product page for an insulated bottle.',
       product: 'can', palette: 'glacier', style: 'lines',
       copy: {
         headline: 'Cold for 24. Hot for 12.',
@@ -207,9 +207,9 @@ window.PORTFOLIO = {
       title: 'House Blend',
       brand: 'Dawn Patrol Coffee',
       category: 'Grocery',
-      marketplace: 'Amazon · A+ Content',
+      marketplace: 'Amazon A+',
       year: '2024',
-      summary: 'Subscription-focused page for a specialty roaster. Earthy tones, a tasting-note system and brew steps that double as social cut-downs.',
+      summary: 'Product page for a specialty roaster’s house blend.',
       product: 'pouch', palette: 'roast', style: 'dots',
       copy: {
         headline: 'Roasted Monday. Yours by Friday.',

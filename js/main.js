@@ -11,7 +11,7 @@
 
   /* ── Profile ─────────────────────────────────────────────── */
   const P = D.profile;
-  document.title = `${P.name} — ${P.role}`;
+  document.title = `${P.name}, ${P.role}`;
   $$('[data-t]').forEach(el => { if (P[el.dataset.t] != null) el.textContent = P[el.dataset.t]; });
   $$('[data-mail]').forEach(a => { a.href = 'mailto:' + P.email; });
   $$('[data-count]').forEach(el => { el.textContent = (D[el.dataset.count] || []).length; });
@@ -67,7 +67,7 @@
     groups[key] = c.formats.map(fm => ({
       ratio: fm.ratio[0] / fm.ratio[1], isImg: !!fm.image, html: () => media(fm),
       kicker: 'Campaign', title: c.title, note: c.summary,
-      meta: [['Client', c.client], ['Year', c.year], ['Format', `${fm.label} · ${fm.ratio[0]}:${fm.ratio[1]}`]]
+      meta: [['Client', c.client], ['Year', c.year], ['Format', `${fm.label}, ${fm.ratio[0]}:${fm.ratio[1]}`]]
     }));
 
     // First format gets its own row; the rest are packed into equal-height rows.
@@ -124,7 +124,7 @@
   apIndex.innerHTML = D.aplus.map((a, i) =>
     `<button class="ap-tab" type="button" role="tab" id="ap-tab-${i}" aria-controls="ap-stage" aria-selected="false" tabindex="-1" data-ap="${i}">` +
       `<span class="n">${pad2(i + 1)}</span>` +
-      `<span class="t">${esc(a.title)}<span class="c">${esc(a.brand)} · ${esc(a.category)}</span></span>` +
+      `<span class="t">${esc(a.title)}<span class="c">${esc(a.brand)}, ${esc(a.category)}</span></span>` +
       `<span class="m">${apCount(a)} modules</span>` +
     `</button>`).join('');
 
@@ -152,7 +152,7 @@
       `</div>`;
     apInfo.innerHTML =
       `<p class="ap-summary">${esc(a.summary)}</p>` +
-      `<dl class="ap-meta">${metaHTML(apMeta(a))}</dl>` +
+      `<dl class="ap-meta">${metaHTML(apMeta(a).filter(m => ['Year', 'Role', 'Result'].includes(m[0])))}</dl>` +
       `<button class="btn" type="button" data-group="aplus" data-i="${i}">View full page ↗</button>`;
     if (apRO) { apRO.disconnect(); apRO.observe($('.ap-view', apStage)); apRO.observe($('.ap-stack', apStage)); }
   }
