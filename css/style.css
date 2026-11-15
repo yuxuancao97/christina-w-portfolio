@@ -137,33 +137,31 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 .cutout img { width: 100%; height: auto; mix-blend-mode: multiply; }
 
 /* Hello */
-.hello { display: grid; grid-template-columns: repeat(12, 1fr); gap: 40px 24px; align-items: start;
-  /* the first words after the cover: given room to breathe, at the cost of a little more scrolling */
-  padding-top: min(clamp(76px, 9.5vw, 156px), 13svh); padding-bottom: min(clamp(76px, 9.5vw, 156px), 13svh); }
-.hello-text { grid-column: 1 / 10; font-size: min(clamp(2.6rem, 6.9vw, 7.2rem), 9svh); line-height: 0.98; text-wrap: balance; }
+.hello { display: grid; grid-template-columns: repeat(12, 1fr); gap: 40px 24px; align-items: start; padding-top: clamp(96px, 13vw, 200px); padding-bottom: clamp(96px, 13vw, 200px); }
+.hello-text { grid-column: 1 / 10; font-size: clamp(2.6rem, 6.9vw, 7.2rem); line-height: 0.98; text-wrap: balance; }
 .detail { grid-column: 10 / -1; padding-top: 0.6em; }
 .detail .label { margin-bottom: 18px; }
 .detail p { font-size: 13px; line-height: 1.75; color: var(--ink); max-width: 30em; }
 
 /* Feature band: big headline, a line and facts, then a moving strip of work */
-.seas { margin: 0 10px; border-radius: 18px; background: #0a0a0a; padding: min(clamp(36px, 5vw, 76px), 6svh) 0 min(clamp(18px, 2.6vw, 40px), 3.2svh); overflow: hidden; }
+.seas { margin: 0 10px; border-radius: 18px; background: #0a0a0a; padding: clamp(64px, 9vw, 140px) 0 clamp(28px, 3.6vw, 56px); overflow: hidden; }
 .seas[hidden] { display: none; }
 .seas-head { padding: 0 clamp(20px, 3.4vw, 52px); }
-.seas-title { font-size: min(clamp(3rem, 9.4vw, 10rem), 13svh); line-height: 0.9; letter-spacing: -0.03em; max-width: 9.5em; text-wrap: balance; }
-.seas-foot { display: grid; grid-template-columns: repeat(12, 1fr); gap: 32px 24px; align-items: end; margin-top: min(clamp(22px, 3.2vw, 52px), 3.6svh); }
+.seas-title { font-size: clamp(3.2rem, 10.6vw, 11.5rem); line-height: 0.9; letter-spacing: -0.03em; max-width: 9.5em; text-wrap: balance; }
+.seas-foot { display: grid; grid-template-columns: repeat(12, 1fr); gap: 32px 24px; align-items: end; margin-top: clamp(48px, 6.6vw, 100px); }
 .seas-text { grid-column: 1 / 6; font-size: clamp(1rem, 1.4vw, 1.2rem); line-height: 1.45; max-width: 32em; }
 .seas-facts { grid-column: 8 / -1; font-size: 14px; }
-.seas-facts div { display: grid; grid-template-columns: 112px 1fr; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+.seas-facts div { display: grid; grid-template-columns: 112px 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
 .seas-facts div:last-child { border-bottom: 1px solid var(--line); }
 .seas-facts dt { font-family: var(--mono); font-size: 11.5px; color: var(--muted); padding-top: 2px; }
 .seas-facts a { text-decoration: none; }
 .seas-facts a:hover { color: var(--accent); }
-.seas-reel { margin-top: min(clamp(22px, 3.2vw, 52px), 3.6svh); overflow: hidden; }
+.seas-reel { margin-top: clamp(48px, 6.6vw, 100px); overflow: hidden; }
 .seas-track { display: flex; width: max-content; will-change: transform; animation: drift var(--dur, 80s) linear infinite; }
 .seas-track.paused { animation-play-state: paused; }
 .seas-reel:hover .seas-track, .seas-reel:focus-within .seas-track { animation-play-state: paused; }
 .s-item {
-  all: unset; display: block; flex: none; height: min(clamp(170px, 23vw, 300px), 30svh); margin-right: 10px;
+  all: unset; display: block; flex: none; height: clamp(190px, 27vw, 350px); margin-right: 10px;
   border-radius: 8px; overflow: hidden; cursor: zoom-in; background: var(--surface);
 }
 .s-item:focus-visible { outline: 2px solid currentColor; outline-offset: -4px; }
@@ -194,16 +192,16 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
 .rs-row .k.tag { min-width: 0; width: 26px; height: 22px; display: inline-grid; place-items: center; border: 1px solid var(--ink); border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: calc(var(--kw) - 26px); }
 
 /* Index */
-.index { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px 24px; align-items: start; padding-top: min(clamp(36px, 5vw, 80px), 5.5svh); padding-bottom: min(clamp(36px, 5.6vw, 88px), 5svh); }
+.index { display: grid; grid-template-columns: repeat(12, 1fr); gap: 32px 24px; align-items: start; padding-top: clamp(88px, 11vw, 170px); padding-bottom: clamp(104px, 14vw, 230px); }
 .index > .label { grid-column: 1 / 6; }
 .index-list { grid-column: 6 / -1; }
-.index-list .label { margin-bottom: 12px; color: var(--muted); }
+.index-list .label { margin-bottom: 20px; color: var(--muted); }
 #work-index a {
-  display: grid; grid-template-columns: 2.4em minmax(0, 1.9fr) minmax(0, 1fr) auto; align-items: baseline; gap: 12px;
-  padding: 10px 0 12px; text-decoration: none; border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: 2.4em minmax(0, 1.5fr) minmax(0, 1fr) auto; align-items: baseline; gap: 12px;
+  padding: 18px 0 20px; text-decoration: none; border-top: 1px solid var(--line);
 }
 #work-index li:last-child a { border-bottom: 1px solid var(--line); }
-#work-index .t { font-family: var(--serif); font-size: min(clamp(1.6rem, 2.7vw, 2.5rem), 4.4svh); line-height: 1.02; letter-spacing: -0.02em; }
+#work-index .t { font-family: var(--serif); font-size: clamp(1.7rem, 2.9vw, 2.7rem); line-height: 1.02; letter-spacing: -0.02em; }
 #work-index .n, #work-index .y { font-family: var(--mono); font-size: 12px; color: var(--muted); }
 #work-index .d { font-size: 13px; color: var(--muted); }
 #work-index .y { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -339,8 +337,7 @@ h1, h2, h3, p, dl, dd, figure { margin: 0; }
   .seas-text, .seas-facts { grid-column: 1 / -1; }
   .hello-text { font-size: clamp(2.5rem, 11vw, 5rem); }
   .resume-id, .resume-body { grid-column: 1 / -1; }
-  .index > .label { display: none; }
-  .index-list { grid-column: 1 / -1; }
+  .index > .label, .index-list { grid-column: 1 / -1; }
   .panel-meta { grid-template-columns: 1fr 1fr; }
   .panel-meta div:first-child, .panel-meta div:nth-child(4) { grid-column: 1 / -1; }
   .lb-body { display: flex; flex-direction: column; }
