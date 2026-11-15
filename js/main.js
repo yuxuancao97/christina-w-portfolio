@@ -225,6 +225,27 @@
     try { localStorage.setItem('theme', root.dataset.theme); } catch (e) {}
   });
 
+  /* Type direction switcher (mock-up only: remove once a direction is chosen) */
+  const TYPES = [['editorial', 'Editorial'], ['swiss', 'Swiss'], ['poster', 'Poster'], ['couture', 'Couture']];
+  const typebar = document.createElement('div');
+  typebar.className = 'typebar';
+  typebar.setAttribute('role', 'group');
+  typebar.setAttribute('aria-label', 'Type direction');
+  typebar.innerHTML = '<span>Type</span>' + TYPES.map(([k, l]) => `<button type="button" data-type-opt="${k}">${l}</button>`).join('');
+  document.body.appendChild(typebar);
+  const setType = k => {
+    if (!TYPES.some(t => t[0] === k)) k = 'editorial';
+    if (k === 'editorial') delete root.dataset.type; else root.dataset.type = k;
+    $$('button', typebar).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.typeOpt === k)));
+  };
+  setType(root.dataset.type || 'editorial');
+  typebar.addEventListener('click', e => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    setType(b.dataset.typeOpt);
+    try { localStorage.setItem('type', b.dataset.typeOpt); } catch (err) {}
+  });
+
   const head = $('.site-head');
   const onScroll = () => head.classList.toggle('scrolled', window.scrollY > 8);
   window.addEventListener('scroll', onScroll, { passive: true });
