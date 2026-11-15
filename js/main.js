@@ -48,49 +48,55 @@
   const apMods = a => a.modules
     ? a.modules.map((src, i) => img(src, `${a.brand} ${a.title}, module ${i + 1}`))
     : Art.aplusModules(a);
-  const apCount = a => (a.modules || a.layout || Art.MODULES).length;
-  const apMeta = a => [['Brand', a.brand], ['Channel', a.marketplace], ['Role', a.role],
-    ['Modules', String(apCount(a))], ['Year', a.year], ['Result', a.result]].filter(m => m[1]);
   const metaHTML = rows => rows.map(m => `<div><dt>${esc(m[0])}</dt><dd>${esc(m[1])}</dd></div>`).join('');
 
   const pageMounts = [];
 
+  /* Rows for a group of pieces. The first wide piece leads at full width; the rest are
+     packed into rows that each fill the width at one shared height. Returns index lists. */
+  const layoutRows = items => {
+    const r = i => ratioOf(items[i])[0] / ratioOf(items[i])[1];
+    const all = items.map((_, i) => i);
+    const hero = all.find(i => r(i) >= 1.5);
+    const rows = hero == null ? [] : [[hero]];
+    let row = [], sum = 0;
+    all.filter(i => i !== hero).forEach(i => {
+      row.push(i); sum += r(i);
+      if (sum >= 2.6) { rows.push(row); row = []; sum = 0; }
+    });
+    if (row.length) {
+      const prev = rows[rows.length - 1];
+      const packed = prev && !(hero != null && rows.length === 1);
+      if (sum < 1.5 && packed) prev.push(...row); else rows.push(row);
+    }
+    return rows.map(idxs => ({ idxs, sum: idxs.reduce((n, i) => n + r(i), 0) }));
+  };
+
   const groupHTML = (g, gi, ch) => {
     const key = `${ch.id}-${gi}`;
-    let body;
 
     if (g.layout === 'pages') {
-      groups[key] = g.items.map(a => ({
-        page: true, html: () => apMods(a).join(''),
-        kicker: ch.title, title: a.title, note: a.summary, meta: apMeta(a)
-      }));
       pageMounts.push({ key, items: g.items });
-      body = `<div class="ap reveal" data-ap="${key}">` +
-        `<div class="ap-side"><div class="ap-index" role="tablist" aria-label="${esc(g.title)}"></div><div class="ap-info"></div></div>` +
-        `<div class="ap-stage" role="tabpanel" id="ap-stage-${key}"></div></div>`;
-    } else {
-      groups[key] = g.items.map((it, k) => ({
-        ratio: ratioOf(it)[0] / ratioOf(it)[1], isImg: !!it.image, html: () => pieceMedia(it, g, ch, k),
-        kicker: ch.title, title: nameOf(it), note: it.note,
-        meta: [['Role', ch.role], ['Period', ch.years], ['Work', g.title]]
-      }));
-      if (g.layout === 'tiles') {
-        body = `<div class="poster-grid">` + g.items.map((it, k) =>
-          `<button class="tile reveal" type="button" data-group="${key}" data-i="${k}" style="transition-delay:${(k % 4) * 70}ms">` +
-            `<span class="tile-art">${pieceMedia(it, g, ch, k)}</span>` +
-            `<span class="tile-cap">${esc(nameOf(it))}</span>` +
-          `</button>`).join('') + `</div>`;
-      } else {
-        body = `<div class="g-rows reveal">` + g.items.map((it, k) => {
-          const [a, b] = ratioOf(it);
-          return `<figure class="c-item" style="--r:${(a / b).toFixed(4)}">` +
-            `<button class="c-art" type="button" data-group="${key}" data-i="${k}" style="aspect-ratio:${a}/${b}" aria-label="${esc(nameOf(it))}">${pieceMedia(it, g, ch, k)}</button>` +
-            `<figcaption><span>${esc(nameOf(it))}</span></figcaption>` +
-          `</figure>`;
-        }).join('') + `</div>`;
-      }
+      return `<div class="grp" data-pages="${key}">` +
+        `<div class="grp-head"><h3>${esc(g.title)}</h3><div class="pg-tabs" role="tablist" aria-label="${esc(g.title)}"></div></div>` +
+        `<div class="pg-stack reveal" role="tabpanel" id="pg-${key}"></div>` +
+      `</div>`;
     }
-    return `<div class="panel grp"><div class="grp-head"><h3>${esc(g.title)}</h3></div>${body}</div>`;
+
+    groups[key] = g.items.map((it, k) => ({
+      ratio: ratioOf(it)[0] / ratioOf(it)[1], isImg: !!it.image, html: () => pieceMedia(it, g, ch, k),
+      kicker: ch.title, title: nameOf(it), note: it.note,
+      meta: [['Role', ch.role], ['Period', ch.years], ['Work', g.title]]
+    }));
+    const rows = layoutRows(g.items).map(({ idxs, sum }) =>
+      `<div class="m-row">` + idxs.map(k => {
+        const [a, b] = ratioOf(g.items[k]);
+        return `<button class="m-item" type="button" data-group="${key}" data-i="${k}" style="--r:${(a / b).toFixed(4)};aspect-ratio:${a}/${b}" aria-label="${esc(nameOf(g.items[k]))}">${pieceMedia(g.items[k], g, ch, k)}</button>`;
+      }).join('') +
+      // a short row of upright pieces stays at a sensible height instead of filling the width
+      (sum < 1.5 ? `<span class="m-fill" style="flex:${(2.4 - sum).toFixed(3)} 1 0%"></span>` : '') +
+      `</div>`).join('');
+    return `<div class="grp"><div class="grp-head"><h3>${esc(g.title)}</h3></div><div class="mosaic reveal">${rows}</div></div>`;
   };
 
   $('#chapters').innerHTML = D.work.map((ch, ci) =>
@@ -102,6 +108,7 @@
           `<div><dt>Overview</dt><dd>${esc(ch.summary)}</dd></div>` +
           `<div><dt>Date</dt><dd>${esc(ch.years)}</dd></div>` +
           `<div><dt>Role</dt><dd>${esc(ch.role)}</dd></div>` +
+          (ch.credits ? `<div><dt>Credits</dt><dd>${ch.credits.map(c => `${esc(c[0])}: ${esc(c[1])}`).join('<br>')}</dd></div>` : '') +
         `</dl>` +
       `</div>` +
       ch.groups.map((g, gi) => groupHTML(g, gi, ch)).join('') +
@@ -116,58 +123,33 @@
       `<span class="y">${esc(ch.years)}</span>` +
     `</a></li>`).join('');
 
-  /* ── Product pages: list on the left, scrolling preview on the right ── */
+  /* ── Product pages: pick one, see every module at full size ── */
   pageMounts.forEach(({ key, items }) => {
-    const el = $(`[data-ap="${key}"]`);
-    const apIndex = $('.ap-index', el), apStage = $('.ap-stage', el), apInfo = $('.ap-info', el);
-    apIndex.innerHTML = items.map((a, i) =>
-      `<button class="ap-tab" type="button" role="tab" id="ap-tab-${key}-${i}" aria-controls="ap-stage-${key}" aria-selected="false" tabindex="-1" data-ap-i="${i}">` +
-        `<span class="n">${pad2(i + 1)}</span>` +
-        `<span class="t">${esc(a.title)}${a.category ? `<span class="c">${esc(a.category)}</span>` : ''}</span>` +
-        `<span class="m">${apCount(a)} modules</span>` +
-      `</button>`).join('');
-
-    // Hovering the page preview scrolls it to the bottom; this measures how far.
-    const apRO = 'ResizeObserver' in window ? new ResizeObserver(() => {
-      const view = $('.ap-view', apStage), stack = view && view.firstElementChild;
-      if (stack) view.style.setProperty('--shift', Math.min(0, view.clientHeight - stack.offsetHeight) + 'px');
-    }) : null;
-
-    const select = i => {
-      const a = items[i];
-      $$('.ap-tab', apIndex).forEach((t, k) => {
+    const el = $(`[data-pages="${key}"]`), tabs = $('.pg-tabs', el), stack = $('.pg-stack', el);
+    tabs.innerHTML = items.map((a, i) =>
+      `<button class="pg-tab" type="button" role="tab" id="pg-tab-${key}-${i}" aria-controls="pg-${key}" aria-selected="false" tabindex="-1" data-pg="${i}">${esc(a.title)}</button>`).join('');
+    const select = (i, user) => {
+      $$('.pg-tab', tabs).forEach((t, k) => {
         t.setAttribute('aria-selected', String(k === i));
         t.tabIndex = k === i ? 0 : -1;
       });
-      apStage.setAttribute('aria-labelledby', `ap-tab-${key}-${i}`);
-      apStage.innerHTML =
-        `<div class="ap-stage-top"><span>${esc(a.brand)}</span><span>${esc(a.marketplace)}</span></div>` +
-        `<button class="ap-frame" type="button" data-group="${key}" data-i="${i}" aria-label="Open the full ${esc(a.title)} page">` +
-          `<span class="ap-bar"><i></i><i></i><i></i><span>${esc(a.brand)} / ${esc(a.title)}</span></span>` +
-          `<span class="ap-view"><span class="ap-stack">${apMods(a).join('')}</span></span>` +
-        `</button>` +
-        `<div class="ap-strip">` + apMods(a).map((m, k) =>
-          `<button class="ap-thumb" type="button" data-group="${key}" data-i="${i}" data-mod="${k}" aria-label="Open module ${k + 1} of ${esc(a.title)}">${m}</button>`).join('') +
-        `</div>`;
-      apInfo.innerHTML =
-        `<p class="ap-summary">${esc(a.summary)}</p>` +
-        `<dl class="ap-meta">${metaHTML(apMeta(a).filter(m => ['Year', 'Role', 'Result'].includes(m[0])))}</dl>` +
-        `<button class="btn" type="button" data-group="${key}" data-i="${i}">View full page ↗</button>`;
-      if (apRO) { apRO.disconnect(); apRO.observe($('.ap-view', apStage)); apRO.observe($('.ap-stack', apStage)); }
+      stack.setAttribute('aria-labelledby', `pg-tab-${key}-${i}`);
+      stack.innerHTML = apMods(items[i]).join('');
+      // switching from deep inside a long page: come back to its top
+      if (user && el.getBoundingClientRect().top < 0) el.scrollIntoView();
     };
-
-    apIndex.addEventListener('click', e => {
-      const t = e.target.closest('.ap-tab');
-      if (t) select(+t.dataset.apI);
+    tabs.addEventListener('click', e => {
+      const t = e.target.closest('.pg-tab');
+      if (t) select(+t.dataset.pg, true);
     });
-    apIndex.addEventListener('keydown', e => {
-      const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+    tabs.addEventListener('keydown', e => {
+      const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
       if (!step) return;
       e.preventDefault();
-      const tabs = $$('.ap-tab', apIndex), cur = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
-      const next = (cur + step + tabs.length) % tabs.length;
-      select(next);
-      tabs[next].focus();
+      const all = $$('.pg-tab', tabs), cur = all.findIndex(t => t.getAttribute('aria-selected') === 'true');
+      const next = (cur + step + all.length) % all.length;
+      select(next, true);
+      all[next].focus();
     });
     if (items.length) select(0);
   });
@@ -219,6 +201,15 @@
   });
 
   /* ── Page behaviour ──────────────────────────────────────── */
+  // The header steps aside while scrolling down through the work and returns on the way up.
+  const head = $('.site-head');
+  let lastY = window.scrollY;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    head.classList.toggle('away', y > lastY && y > 160);
+    lastY = y;
+  }, { passive: true });
+
   if ('IntersectionObserver' in window) {
     const io = new IntersectionObserver(entries => entries.forEach(e => {
       if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }

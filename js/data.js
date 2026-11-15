@@ -9,9 +9,13 @@
    Every piece is still a generated placeholder.
 
    Adding the real work
-   • A piece in a 'rows' or 'tiles' group:
+   • A piece in a group:
        { label: 'Booth backdrop', ratio: [3, 1], image: 'images/…jpg' }
-     `ratio` is the image's [width, height]. 'tiles' are portrait.
+     `ratio` is the image's [width, height] (default [5, 7]).
+     The first wide piece in a group leads at full width, so pick 5 to 8
+     strong pieces per group over showing everything.
+   • `credits` on a chapter: who did what. Add photography, 3D or copy by
+     others here so her own part is clear.
    • A product page in a 'pages' group:
        { title: '…', brand: '…', marketplace: 'A+ content', year: '…',
          summary: '…', modules: ['images/aplus/x/01.jpg', …] }
@@ -174,6 +178,7 @@ window.PORTFOLIO = {
       industry: 'Automotive electronics',
       role: 'Graphic Designer',
       years: '2023.04 - 2025.01', short: '2023/25', mark: 'Kunyi',
+      credits: [['Visual design', 'Christina W']],
       summary: 'Overall responsibility for the brand’s visual design and presentation, in print, online and at domestic and international exhibitions.',
       groups: [
         {
@@ -218,6 +223,7 @@ window.PORTFOLIO = {
       industry: 'Fitness',
       role: 'Graphic Designer',
       years: '2022.01 - 2023.04', short: '2022/23', mark: 'Shuhua',
+      credits: [['Visual design', 'Christina W, working independently']],
       summary: 'Independently produced the commercial visual design for the Shuhua Fitness sub-brand and its directly operated locations, from sampling and proofs to final production.',
       groups: [
         {
@@ -263,6 +269,7 @@ window.PORTFOLIO = {
       industry: 'Cross-border e-commerce',
       role: 'Graphic Designer',
       years: '2020.04 - 2021.12', short: '2020/21', mark: 'Sainuoweier',
+      credits: [['Product imagery and text', 'Christina W'], ['Packaging', 'Christina W']],
       summary: 'Product imagery and text, packaging and promotions for the company’s Amazon store.',
       groups: [
         { title: 'Amazon product pages', layout: 'pages', items: SAMPLE_PAGES },
