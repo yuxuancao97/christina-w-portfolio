@@ -401,9 +401,9 @@
   }
 
   const DEFAULT_MODULES = ['hero', 'features', 'split', 'banner', 'compare', 'steps'];
-  function aplusPage(pr) {
-    return (pr.layout || DEFAULT_MODULES).map((t, i) => aplusModule(pr, t, i)).join('');
+  function aplusModules(pr) {
+    return (pr.layout || DEFAULT_MODULES).map((t, i) => aplusModule(pr, t, i));
   }
 
-  window.Art = { poster, aplusPage, esc, PALETTES, STYLES: Object.keys(STYLES) };
+  window.Art = { poster, aplusModules, MODULES: DEFAULT_MODULES, esc, PALETTES, STYLES: Object.keys(STYLES) };
 })();

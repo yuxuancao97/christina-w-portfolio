@@ -10,6 +10,7 @@
                       and set `ratio` to the image's [width, height]
    • A+ page:         add  modules: ['images/aplus/x-1.jpg', 'images/aplus/x-2.jpg', …]
                       (one image per content module, top to bottom)
+                      optional extras: role: 'Design & art direction', result: '…'
 
    Any item without an image shows a generated placeholder, drawn
    from `art: [style, palette]`.

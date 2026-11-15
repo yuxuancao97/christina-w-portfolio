@@ -105,33 +105,72 @@
   }).join('');
 
   /* ── A+ content ──────────────────────────────────────────── */
-  const apPage = a => a.modules ? a.modules.map((src, i) => img(src, `${a.brand} ${a.title}, module ${i + 1}`)).join('') : Art.aplusPage(a);
-  const apCount = a => (a.modules || a.layout || [1, 2, 3, 4, 5, 6]).length;
+  // One entry per content module: the designer's own images if given, placeholders if not.
+  const apMods = a => a.modules
+    ? a.modules.map((src, i) => img(src, `${a.brand} ${a.title}, module ${i + 1}`))
+    : Art.aplusModules(a);
+  const apCount = a => (a.modules || a.layout || Art.MODULES).length;
+  const apMeta = a => [['Brand', a.brand], ['Category', a.category], ['Channel', a.marketplace], ['Role', a.role],
+    ['Modules', String(apCount(a))], ['Year', a.year], ['Result', a.result]].filter(m => m[1]);
+  const metaHTML = rows => rows.map(m => `<div><dt>${esc(m[0])}</dt><dd>${esc(m[1])}</dd></div>`).join('');
 
   $('#count-aplus').textContent = `${D.aplus.length} product pages`;
   groups.aplus = D.aplus.map(a => ({
-    page: true, html: () => apPage(a),
-    kicker: 'A+ Content', title: a.title, note: a.summary,
-    meta: [['Brand', a.brand], ['Category', a.category], ['Channel', a.marketplace], ['Modules', String(apCount(a))], ['Year', a.year], ['Result', a.result]]
+    page: true, html: () => apMods(a).join(''),
+    kicker: 'A+ Content', title: a.title, note: a.summary, meta: apMeta(a)
   }));
 
-  $('#ap-grid').innerHTML = D.aplus.map((a, i) =>
-    `<article class="ap-card reveal" style="transition-delay:${i * 70}ms">` +
-      `<button class="ap-frame" type="button" data-group="aplus" data-i="${i}" aria-label="View ${esc(a.brand)} ${esc(a.title)} A+ page">` +
-        `<span class="ap-bar"><i></i><i></i><i></i><span>${esc(a.brand)} / ${esc(a.title)}</span></span>` +
-        `<span class="ap-view"><span class="ap-stack">${apPage(a)}</span></span>` +
-      `</button>` +
-      `<div class="ap-cap"><span class="t">${esc(a.title)}<span class="c">${esc(a.brand)} · ${esc(a.category)}</span></span><span class="m">${apCount(a)} modules</span></div>` +
-    `</article>`).join('');
+  const apIndex = $('#ap-index'), apStage = $('#ap-stage'), apInfo = $('#ap-info');
+  apIndex.innerHTML = D.aplus.map((a, i) =>
+    `<button class="ap-tab" type="button" role="tab" id="ap-tab-${i}" aria-controls="ap-stage" aria-selected="false" tabindex="-1" data-ap="${i}">` +
+      `<span class="n">${pad2(i + 1)}</span>` +
+      `<span class="t">${esc(a.title)}<span class="c">${esc(a.brand)} · ${esc(a.category)}</span></span>` +
+      `<span class="m">${apCount(a)} modules</span>` +
+    `</button>`).join('');
 
-  // Hovering a page preview scrolls it to the bottom; this measures how far.
-  if ('ResizeObserver' in window) {
-    const ro = new ResizeObserver(entries => entries.forEach(e => {
-      const view = e.target, stack = view.firstElementChild;
-      view.style.setProperty('--shift', Math.min(0, view.clientHeight - stack.offsetHeight) + 'px');
-    }));
-    $$('.ap-view').forEach(v => ro.observe(v));
+  // Hovering the page preview scrolls it to the bottom; this measures how far.
+  const apRO = 'ResizeObserver' in window ? new ResizeObserver(() => {
+    const view = $('.ap-view', apStage), stack = view && view.firstElementChild;
+    if (stack) view.style.setProperty('--shift', Math.min(0, view.clientHeight - stack.offsetHeight) + 'px');
+  }) : null;
+
+  function selectAp(i) {
+    const a = D.aplus[i];
+    $$('.ap-tab', apIndex).forEach((t, k) => {
+      t.setAttribute('aria-selected', String(k === i));
+      t.tabIndex = k === i ? 0 : -1;
+    });
+    apStage.setAttribute('aria-labelledby', 'ap-tab-' + i);
+    apStage.innerHTML =
+      `<div class="ap-stage-top"><span>${esc(a.brand)}</span><span>${esc(a.marketplace)}</span></div>` +
+      `<button class="ap-frame" type="button" data-group="aplus" data-i="${i}" aria-label="Open the full ${esc(a.title)} page">` +
+        `<span class="ap-bar"><i></i><i></i><i></i><span>${esc(a.brand)} / ${esc(a.title)}</span></span>` +
+        `<span class="ap-view"><span class="ap-stack">${apMods(a).join('')}</span></span>` +
+      `</button>` +
+      `<div class="ap-strip">` + apMods(a).map((m, k) =>
+        `<button class="ap-thumb" type="button" data-group="aplus" data-i="${i}" data-mod="${k}" aria-label="Open module ${k + 1} of ${esc(a.title)}">${m}</button>`).join('') +
+      `</div>`;
+    apInfo.innerHTML =
+      `<p class="ap-summary">${esc(a.summary)}</p>` +
+      `<dl class="ap-meta">${metaHTML(apMeta(a))}</dl>` +
+      `<button class="btn" type="button" data-group="aplus" data-i="${i}">View full page ↗</button>`;
+    if (apRO) { apRO.disconnect(); apRO.observe($('.ap-view', apStage)); apRO.observe($('.ap-stack', apStage)); }
   }
+
+  apIndex.addEventListener('click', e => {
+    const t = e.target.closest('.ap-tab');
+    if (t) selectAp(+t.dataset.ap);
+  });
+  apIndex.addEventListener('keydown', e => {
+    const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    const tabs = $$('.ap-tab', apIndex), cur = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+    const next = (cur + step + tabs.length) % tabs.length;
+    selectAp(next);
+    tabs[next].focus();
+  });
+  if (D.aplus.length) selectAp(0);
 
   /* ── Viewer ──────────────────────────────────────────────── */
   const lb = $('#lb'), lbMedia = $('.lb-media', lb), lbStage = $('.lb-stage', lb);
@@ -161,6 +200,10 @@
     show(+t.dataset.i);
     if (!lb.open) lb.showModal();
     root.classList.add('lb-open');
+    if (t.dataset.mod) { // opened from a module thumbnail: jump to that module
+      const el = lbMedia.children[+t.dataset.mod];
+      if (el) lbStage.scrollTop += el.getBoundingClientRect().top - lbMedia.getBoundingClientRect().top;
+    }
   });
   lb.addEventListener('close', () => {
     if (lb.open) return; // reopened before this event arrived
