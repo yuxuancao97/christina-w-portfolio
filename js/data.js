@@ -143,15 +143,27 @@ window.PORTFOLIO = {
   profile: {
     name: 'Christina W',
     role: 'Visual designer',
-    since: 'Since 2020',
+    span: '2020 - 2025 Portfolio',
     email: 'hello@example.com',
     socials: [],
-    bio: 'Visual designer with a degree in Visual Communication Design. Since 2020 she has worked in-house for brands in automotive electronics, fitness and cross-border e-commerce.',
-    about: [
-      ['Education', ['BA, Visual Communication Design', 'Jincheng College, 2014 to 2018', 'Scholarship in each of the four years']],
-      ['Skills', ['Visual identity', 'Layout and typeface design', 'Packaging design', 'Advertising', 'Photography']],
-      ['Tools', ['Photoshop', 'Illustrator']],
-      ['Languages', ['English, CET-6']]
+    /* Handwritten lines. Sample wording: replace with her own. */
+    cover: 'Christina W',
+    hello: 'Hello, I design brand visuals, Amazon store content, packaging & posters.',
+    bio: 'I have a degree in Visual Communication Design. Since 2020 I have worked in-house for brands in automotive electronics, fitness and cross-border e-commerce.',
+    /* Resume rows: [left, right]. Experience is filled in from `work` below. */
+    education: [
+      ['2014.09 - 2018.06', 'Jincheng College, BA Visual Communication Design'],
+      ['2014 - 2018', 'Scholarship in each of the four years']
+    ],
+    skills: [
+      ['Ps', 'Photoshop'],
+      ['Ai', 'Illustrator'],
+      ['Design', 'Visual identity, layout, typeface, packaging'],
+      ['Also', 'Advertising, photography']
+    ],
+    certificates: [
+      ['CET-6', 'College English Test, Band 6'],
+      ['CET-4', 'College English Test, Band 4']
     ]
   },
 
@@ -161,7 +173,7 @@ window.PORTFOLIO = {
       title: 'Kunyi Electronic Technology',
       industry: 'Automotive electronics',
       role: 'Graphic Designer',
-      years: 'Apr 2023 to Jan 2025', short: '2023/25',
+      years: '2023.04 - 2025.01', short: '2023/25', mark: 'Kunyi',
       summary: 'Overall responsibility for the brand’s visual design and presentation, in print, online and at domestic and international exhibitions.',
       groups: [
         {
@@ -205,7 +217,7 @@ window.PORTFOLIO = {
       title: 'Shuhua Sports',
       industry: 'Fitness',
       role: 'Graphic Designer',
-      years: 'Jan 2022 to Apr 2023', short: '2022/23',
+      years: '2022.01 - 2023.04', short: '2022/23', mark: 'Shuhua',
       summary: 'Independently produced the commercial visual design for the Shuhua Fitness sub-brand and its directly operated locations, from sampling and proofs to final production.',
       groups: [
         {
@@ -250,7 +262,7 @@ window.PORTFOLIO = {
       title: 'Sainuoweier Technology',
       industry: 'Cross-border e-commerce',
       role: 'Graphic Designer',
-      years: 'Apr 2020 to Dec 2021', short: '2020/21',
+      years: '2020.04 - 2021.12', short: '2020/21', mark: 'Sainuoweier',
       summary: 'Product imagery and text, packaging and promotions for the company’s Amazon store.',
       groups: [
         { title: 'Amazon product pages', layout: 'pages', items: SAMPLE_PAGES },

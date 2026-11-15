@@ -14,12 +14,21 @@
   document.title = `${P.name}, ${P.role}`;
   $$('[data-t]').forEach(el => { if (P[el.dataset.t] != null) el.textContent = P[el.dataset.t]; });
   $$('[data-mail]').forEach(a => { a.href = 'mailto:' + P.email; });
-  $$('[data-n]').forEach(el => { el.textContent = pad2(D.work.length + +el.dataset.n); });
   $('#yr').textContent = new Date().getFullYear();
   $('#socials').innerHTML = (P.socials || []).map(s => `<li><a href="${esc(s.url)}">${esc(s.label)}</a></li>`).join('');
   $('#socials').hidden = !(P.socials || []).length;
-  $('#about-cols').innerHTML = (P.about || []).map(([h, items]) =>
-    `<div class="reveal"><h3>${esc(h)}</h3><ul>${items.map(it => `<li>${esc(it)}</li>`).join('')}</ul></div>`).join('');
+
+  /* Resume: handwritten headings over rows of "left ........ right" */
+  const tag = k => /^[A-Z][a-z]$/.test(k); // Ps, Ai: drawn as a small app badge
+  $('#resume-body').innerHTML = [
+    ['Education', P.education],
+    ['Experience', D.work.map(ch => [ch.years, `${ch.title}, ${ch.role}`])],
+    ['Skills', P.skills],
+    ['Certificates', P.certificates]
+  ].filter(([, rows]) => rows && rows.length).map(([h, rows]) =>
+    `<section class="rs reveal"><h3 class="hand">${esc(h)}</h3>` + rows.map(([k, v]) =>
+      `<div class="rs-row"><span class="k${tag(k) ? ' tag' : ''}">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('') +
+    `</section>`).join('');
 
   const img = (src, alt) => `<img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async">`;
 
@@ -44,7 +53,6 @@
     ['Modules', String(apCount(a))], ['Year', a.year], ['Result', a.result]].filter(m => m[1]);
   const metaHTML = rows => rows.map(m => `<div><dt>${esc(m[0])}</dt><dd>${esc(m[1])}</dd></div>`).join('');
 
-  const reel = []; // portrait pieces for the strip under the intro
   const pageMounts = [];
 
   const groupHTML = (g, gi, ch) => {
@@ -67,15 +75,12 @@
         meta: [['Role', ch.role], ['Period', ch.years], ['Work', g.title]]
       }));
       if (g.layout === 'tiles') {
-        g.items.forEach((it, k) => reel.push(pieceMedia(it, g, ch, k)));
         body = `<div class="poster-grid">` + g.items.map((it, k) =>
           `<button class="tile reveal" type="button" data-group="${key}" data-i="${k}" style="transition-delay:${(k % 4) * 70}ms">` +
             `<span class="tile-art">${pieceMedia(it, g, ch, k)}</span>` +
-            `<span class="tile-cap"><span class="t">${esc(nameOf(it))}</span></span>` +
+            `<span class="tile-cap">${esc(nameOf(it))}</span>` +
           `</button>`).join('') + `</div>`;
       } else {
-        const tall = g.items.findIndex(it => ratioOf(it)[0] < ratioOf(it)[1]);
-        if (tall >= 0) reel.push(pieceMedia(Object.assign({}, g.items[tall], { ratio: [5, 7] }), g, ch, tall));
         body = `<div class="g-rows reveal">` + g.items.map((it, k) => {
           const [a, b] = ratioOf(it);
           return `<figure class="c-item" style="--r:${(a / b).toFixed(4)}">` +
@@ -85,29 +90,31 @@
         }).join('') + `</div>`;
       }
     }
-    return `<div class="grp"><div class="grp-head"><h3>${esc(g.title)}</h3></div>${body}</div>`;
+    return `<div class="panel grp"><div class="grp-head"><h3>${esc(g.title)}</h3></div>${body}</div>`;
   };
 
   $('#chapters').innerHTML = D.work.map((ch, ci) =>
-    `<section class="section chapter" id="work-${esc(ch.id)}">` +
-      `<header class="sec-head">` +
-        `<div class="sec-top"><span>${pad2(ci + 1)}</span><span>${esc(ch.years)}</span></div>` +
-        `<div class="sec-main"><h2>${esc(ch.title)}</h2><p><span class="role">${esc(ch.role)}, ${esc(ch.industry)}</span>${esc(ch.summary)}</p></div>` +
-      `</header>` +
+    `<section class="chapter" id="work-${esc(ch.id)}">` +
+      `<div class="panel cover-panel">` +
+        `<div class="panel-top"><span>${pad2(ci + 1)}. ${esc(ch.title)}</span><span>${esc(ch.industry)}</span></div>` +
+        `<h2 class="wordmark reveal" style="--n:${(ch.mark || ch.title).length}" aria-label="${esc(ch.title)}">${esc(ch.mark || ch.title)}</h2>` +
+        `<dl class="panel-meta">` +
+          `<div><dt>Overview</dt><dd>${esc(ch.summary)}</dd></div>` +
+          `<div><dt>Date</dt><dd>${esc(ch.years)}</dd></div>` +
+          `<div><dt>Role</dt><dd>${esc(ch.role)}</dd></div>` +
+        `</dl>` +
+      `</div>` +
       ch.groups.map((g, gi) => groupHTML(g, gi, ch)).join('') +
     `</section>`).join('');
 
-  /* Overview: the three roles at a glance, each linking to its chapter */
-  $('#work-index').innerHTML = D.work.map(ch =>
-    `<a class="xp-row reveal" href="#work-${esc(ch.id)}">` +
-      `<span class="xp-years">${esc(ch.years)}</span>` +
-      `<h3>${esc(ch.title)}<span>${esc(ch.role)}, ${esc(ch.industry)}</span></h3>` +
-      `<ul>${ch.groups.map(g => `<li>${esc(g.title)}</li>`).join('')}</ul>` +
-    `</a>`).join('');
-
-  /* Strip under the intro: a drifting row of pieces (two copies for a seamless loop) */
-  const strip = reel.slice(0, 10).map(m => `<div class="m-item">${m}</div>`).join('');
-  $('#marquee').innerHTML = strip + strip;
+  /* Index: the roles at a glance, each linking to its chapter */
+  $('#work-index').innerHTML = D.work.map((ch, i) =>
+    `<li><a href="#work-${esc(ch.id)}">` +
+      `<span class="n">${pad2(i + 1)}.</span>` +
+      `<span class="t">${esc(ch.title)}</span>` +
+      `<span class="d">${esc(ch.industry)}</span>` +
+      `<span class="y">${esc(ch.years)}</span>` +
+    `</a></li>`).join('');
 
   /* ── Product pages: list on the left, scrolling preview on the right ── */
   pageMounts.forEach(({ key, items }) => {
@@ -212,17 +219,6 @@
   });
 
   /* ── Page behaviour ──────────────────────────────────────── */
-  $('#theme').addEventListener('click', () => {
-    const dark = getComputedStyle(root).getPropertyValue('--is-dark').trim() === '1';
-    root.dataset.theme = dark ? 'light' : 'dark';
-    try { localStorage.setItem('theme', root.dataset.theme); } catch (e) {}
-  });
-
-  const head = $('.site-head');
-  const onScroll = () => head.classList.toggle('scrolled', window.scrollY > 8);
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-
   if ('IntersectionObserver' in window) {
     const io = new IntersectionObserver(entries => entries.forEach(e => {
       if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
@@ -232,7 +228,7 @@
     const links = $$('.nav a');
     const spy = new IntersectionObserver(entries => entries.forEach(e => {
       if (!e.isIntersecting) return;
-      const id = e.target.id.indexOf('work') === 0 ? 'work' : e.target.id;
+      const id = e.target.id.indexOf('work-') === 0 ? 'index' : e.target.id;
       links.forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + id ? 'true' : 'false'));
     }), { rootMargin: '-45% 0px -50% 0px' });
     $$('main section[id]').forEach(s => spy.observe(s));
