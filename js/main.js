@@ -200,6 +200,83 @@
     if (e.key === 'ArrowLeft') show(cur.i - 1);
   });
 
+  /* ── Handwriting ─────────────────────────────────────────────
+     Each letter is uncovered left to right, one after another, so a line reads as if
+     it is being written. data-write says what drives it:
+       load   plays once when the page opens
+       scroll follows the scroll position as the line moves up the screen
+       view   plays once when the line comes into view                         */
+  const clamp01 = v => Math.max(0, Math.min(1, v));
+  const writers = $$('[data-write]').map(el => {
+    const text = el.textContent.trim();
+    el.textContent = '';
+    const sr = document.createElement('span'); // the whole line, for screen readers and copy
+    sr.className = 'vh'; sr.textContent = text;
+    const ink = document.createElement('span');
+    ink.setAttribute('aria-hidden', 'true');
+    ink.innerHTML = text.split(/\s+/).map(w =>
+      `<span class="w">${Array.from(w).map(c => `<span class="ch">${esc(c)}</span>`).join('')}</span>`).join(' ');
+    el.append(sr, ink);
+    const chars = $$('.ch', ink), n = chars.length;
+    const span = Math.min(1, 2.4 / n); // share of the whole line one letter takes to appear
+    const draw = p => chars.forEach((c, i) => {
+      const q = clamp01((p - (i / n) * (1 - span)) / span);
+      c.style.clipPath = q >= 1 ? '' : `inset(-30% ${((1.3 - 1.6 * q) * 100).toFixed(1)}% -30% -30%)`;
+      c.style.visibility = q <= 0 ? 'hidden' : '';
+    });
+    draw(0);
+    return { el, mode: el.dataset.write, draw, shown: 0, target: 0, n };
+  });
+
+  const noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // play a line over time; roughly constant writing speed whatever its length
+  const play = w => {
+    if (w.playing || w.shown >= 1) return;
+    w.playing = true;
+    const ms = Math.max(1500, w.n * 120), t0 = performance.now();
+    const tick = now => {
+      w.shown = clamp01((now - t0) / ms);
+      w.draw(w.shown);
+      if (w.shown < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
+
+  if (noMotion) {
+    writers.forEach(w => w.draw(1));
+  } else {
+    const ready = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    ready.then(() => setTimeout(() => writers.filter(w => w.mode === 'load').forEach(play), 250));
+
+    if ('IntersectionObserver' in window) {
+      const seen = new IntersectionObserver(entries => entries.forEach(e => {
+        if (e.isIntersecting) play(writers.find(w => w.el === e.target));
+      }), { rootMargin: '0px 0px -18% 0px' });
+      writers.filter(w => w.mode === 'view').forEach(w => seen.observe(w.el));
+    } else {
+      writers.filter(w => w.mode === 'view').forEach(w => w.draw(1));
+    }
+
+    // scroll-driven lines: the pen follows the scroll, easing to catch up, and never un-writes
+    const scrolled = writers.filter(w => w.mode === 'scroll');
+    let ticking = false;
+    const follow = () => {
+      let moving = false;
+      scrolled.forEach(w => {
+        const r = w.el.getBoundingClientRect(), vh = window.innerHeight;
+        w.target = Math.max(w.target, clamp01((vh * 0.9 - r.top) / (vh * 0.35 + r.height)));
+        if (w.target - w.shown > 0.001) { w.shown += (w.target - w.shown) * 0.14; w.draw(w.shown); moving = true; }
+        else if (w.shown < w.target) { w.shown = w.target; w.draw(w.shown); }
+      });
+      ticking = moving;
+      if (moving) requestAnimationFrame(follow);
+    };
+    const kick = () => { if (!ticking) { ticking = true; requestAnimationFrame(follow); } };
+    window.addEventListener('scroll', kick, { passive: true });
+    window.addEventListener('resize', kick);
+    kick();
+  }
+
   /* ── Page behaviour ──────────────────────────────────────── */
   // The header steps aside while scrolling down through the work and returns on the way up.
   const head = $('.site-head');
