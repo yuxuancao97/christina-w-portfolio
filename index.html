@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Christina W — Graphic Designer</title>
+  <meta name="description" content="Portfolio of a graphic designer working across posters, campaign graphics and e-commerce A+ content.">
+  <script>
+    try { var t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip" href="#posters">Skip to work</a>
+
+  <header class="site-head">
+    <a class="brand" href="#top" data-t="name">Christina W</a>
+    <nav class="nav" aria-label="Sections">
+      <a class="only-m" href="#posters">Work</a>
+      <a class="only-d" href="#posters">Posters<sup data-count="posters"></sup></a>
+      <a class="only-d" href="#campaigns">Campaigns<sup data-count="campaigns"></sup></a>
+      <a class="only-d" href="#aplus">A+ Content<sup data-count="aplus"></sup></a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="head-right">
+      <span class="status only-d"><i></i><span data-t="availability"></span></span>
+      <button class="theme" id="theme" type="button" aria-label="Switch colour theme">
+        <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2a8 8 0 0 1 0 16z" fill="currentColor"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- ───────── Hero ───────── -->
+    <section class="hero">
+      <p class="eyebrow"><span data-t="role"></span> — <span data-t="location"></span></p>
+      <h1>Posters, campaigns <span class="amp">&amp;</span> A+ content, <em>made to be looked at twice.</em></h1>
+      <div class="hero-foot">
+        <p class="hero-intro">I design printed matter, launch campaigns and marketplace product pages for brands that care how they show up: on a wall, in a feed, or halfway down a listing.</p>
+        <dl class="facts">
+          <div><dt>Focus</dt><dd>Posters · Campaigns · A+ Content</dd></div>
+          <div><dt>Based in</dt><dd data-t="location"></dd></div>
+          <div><dt>Status</dt><dd data-t="availability"></dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <div class="marquee" aria-hidden="true"><div class="marquee-track" id="marquee"></div></div>
+
+    <!-- ───────── Posters ───────── -->
+    <section class="section" id="posters">
+      <header class="sec-head">
+        <div class="sec-top"><span>01 — Posters</span><span id="count-posters"></span></div>
+        <div class="sec-main">
+          <h2>Posters</h2>
+          <p>Print and screen posters for exhibitions, festivals, venues and the occasional street corner. Type first, image second, nothing extra.</p>
+        </div>
+      </header>
+      <div class="poster-grid" id="poster-grid"></div>
+      <div class="more-wrap"><button class="btn" id="poster-more" type="button" hidden></button></div>
+    </section>
+
+    <!-- ───────── Campaigns ───────── -->
+    <section class="section" id="campaigns">
+      <header class="sec-head">
+        <div class="sec-top"><span>02 — Campaign graphics</span><span id="count-campaigns"></span></div>
+        <div class="sec-main">
+          <h2>Campaigns</h2>
+          <p>One idea, built as a system: key visual first, then every format it has to live in, from billboard to story.</p>
+        </div>
+      </header>
+      <div id="campaign-list"></div>
+    </section>
+
+    <!-- ───────── A+ Content ───────── -->
+    <section class="section" id="aplus">
+      <header class="sec-head">
+        <div class="sec-top"><span>03 — E-commerce</span><span id="count-aplus"></span></div>
+        <div class="sec-main">
+          <h2>A+ Content</h2>
+          <p>Below-the-fold product storytelling for marketplaces: hero banners, feature modules and comparison charts designed as one page. Hover to scroll, click to read.</p>
+        </div>
+      </header>
+      <div class="ap-grid" id="ap-grid"></div>
+    </section>
+
+    <!-- ───────── About ───────── -->
+    <section class="section" id="about">
+      <header class="sec-head">
+        <div class="sec-top"><span>04 — About</span><span data-t="location"></span></div>
+      </header>
+      <div class="about">
+        <p class="about-lead reveal">A poster gets three seconds on a street. A product page gets about the same on a phone. I work between the two, and <em>the craft is the same:</em> one clear idea, set in type that earns its size.</p>
+        <div class="about-cols">
+          <div class="reveal">
+            <h3>Print &amp; campaign</h3>
+            <ul>
+              <li>Posters &amp; printed matter</li>
+              <li>Campaign key visuals</li>
+              <li>Social &amp; OOH adaptations</li>
+              <li>Art direction</li>
+            </ul>
+          </div>
+          <div class="reveal">
+            <h3>E-commerce</h3>
+            <ul>
+              <li>A+ &amp; Premium A+ content</li>
+              <li>Listing image sets</li>
+              <li>Brand store pages</li>
+              <li>Sale &amp; promo banners</li>
+            </ul>
+          </div>
+          <div class="reveal">
+            <h3>Selected clients</h3>
+            <ul id="client-list"></ul>
+          </div>
+          <div class="reveal">
+            <h3>Toolbox</h3>
+            <ul>
+              <li>Illustrator, Photoshop, InDesign</li>
+              <li>Figma</li>
+              <li>After Effects</li>
+              <li>Print production</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────── Contact ───────── -->
+    <section class="section contact" id="contact">
+      <header class="sec-head">
+        <div class="sec-top"><span>05 — Contact</span><span data-t="availability"></span></div>
+      </header>
+      <h2 class="reveal">Have a wall, a launch or a listing to fill?</h2>
+      <a class="mail reveal" data-mail href="#"><span data-t="email"></span><span class="arrow" aria-hidden="true">↗</span></a>
+      <ul class="socials" id="socials"></ul>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <span>© <span id="yr"></span> <span data-t="name"></span></span>
+    <a href="#top">Back to top ↑</a>
+  </footer>
+
+  <!-- ───────── Viewer ───────── -->
+  <dialog class="lb" id="lb" aria-label="Project viewer">
+    <div class="lb-bar">
+      <span class="lb-count"></span>
+      <button class="lb-close" type="button">Close <kbd>Esc</kbd></button>
+    </div>
+    <div class="lb-body">
+      <div class="lb-stage"><div class="lb-media"></div></div>
+      <aside class="lb-side">
+        <p class="lb-kicker"></p>
+        <h3 class="lb-title"></h3>
+        <p class="lb-note"></p>
+        <dl class="lb-meta"></dl>
+        <div class="lb-nav">
+          <button type="button" data-step="-1" aria-label="Previous">←</button>
+          <button type="button" data-step="1" aria-label="Next">→</button>
+        </div>
+      </aside>
+    </div>
+  </dialog>
+
+  <script src="js/data.js"></script>
+  <script src="js/art.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
