@@ -263,7 +263,7 @@
       let len = 0;
       for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
       const dur = pace.base + len * pace.perUnit; // longer strokes take longer; every stroke has a start and a stop
-      at += st.lift;
+      at += st.lift * (pace.lift == null ? 1 : pace.lift);
       const path = `<path class="pen" pathLength="1" stroke-width="${pace.width}" d="M${pts.map(q => q.join(',')).join('L')}" style="--at:${Math.round(at)}ms;--dur:${Math.round(dur)}ms"/>`;
       at += dur;
       return path;

@@ -14,6 +14,7 @@
    Pacing lives in `pace`:
      perUnit  ms per unit of stroke length (higher = slower pen)
      base     ms added to every stroke (the pen starting and stopping)
+     lift     multiplies every pause between strokes (1 = as written below)
      width    thickness of the pen that uncovers the letters
    ───────────────────────────────────────────────────────────── */
 window.SIGNATURE = {
@@ -22,7 +23,7 @@ window.SIGNATURE = {
   size: 240,
   origin: [30, 250],
   viewBox: [22, 78, 990, 178],
-  pace: { perUnit: 0.74, base: 38, width: 28 },
+  pace: { perUnit: 0.5, base: 28, lift: 0.6, width: 28 },
   strokes: [
     /* C */ { lift: 0,   pts: '84,140 69,162 52,203 47,221 47,230 49,236 53,240 64,244 77,243 90,240 102,234 115,224 129,211 137,200 139,193' },
     /* h */ { lift: 70,  pts: '172,90 173,124 183,199 186,213 191,217 192,224' },
