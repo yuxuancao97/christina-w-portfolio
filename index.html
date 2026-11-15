@@ -5,16 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Christina W, Visual Designer</title>
   <meta name="description" content="Christina W is a visual designer working across brand visuals, Amazon store content, packaging and posters.">
+  <script>try { history.scrollRestoration = 'manual'; } catch (e) {}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400;500&family=Reenie+Beanie&family=Zilla+Slab:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Reenie+Beanie&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <a class="skip" href="#index">Skip to work</a>
 
   <header class="site-head">
-    <a class="brand" href="#top">Designer <b data-t="name">Christina W</b></a>
+    <a class="brand" href="#top" data-t="name">Christina W</a>
     <nav class="nav" aria-label="Sections">
       <a href="#resume">Resume</a>
       <a href="#index">Work</a>
@@ -33,20 +34,32 @@
 
     <!-- ───────── Hello ───────── -->
     <section class="page hello">
-      <p class="hand hello-text" data-t="hello" data-write="scroll"></p>
+      <p class="display hello-text reveal" data-t="hello"></p>
       <div class="detail reveal">
-        <h2 class="slab-h">Detail</h2>
+        <h2 class="label">Detail</h2>
         <p data-t="bio"></p>
       </div>
     </section>
 
+    <!-- ───────── Feature: international e-commerce ───────── -->
+    <section class="dark seas" id="seas">
+      <div class="seas-head">
+        <h2 class="seas-title display reveal"><span data-f="lead"></span> <em data-f="accent"></em></h2>
+        <div class="seas-foot">
+          <p class="seas-text reveal" data-f="text"></p>
+          <dl class="seas-facts reveal" id="seas-facts"></dl>
+        </div>
+      </div>
+      <div class="seas-reel"><div class="seas-track" id="seas-track"></div></div>
+    </section>
+
     <!-- ───────── Resume ───────── -->
     <section class="page resume" id="resume">
-      <div class="page-top reveal"><h2 class="slab-h">Resume</h2><span><span data-t="name"></span> Portfolio</span></div>
+      <div class="page-top reveal"><h2 class="label">Resume</h2><span><span data-t="name"></span> Portfolio</span></div>
       <div class="resume-grid">
         <div class="resume-id reveal">
-          <p class="hand sig" data-t="name"></p>
-          <p class="slab"><span data-t="name"></span> / <span data-t="role"></span></p>
+          <p class="display sig" data-t="name"></p>
+          <p class="label" data-t="role"></p>
           <img class="avatar" src="images/christina-w.jpg" alt="" width="1400" height="1400" loading="lazy">
           <dl class="id-list">
             <div><dt>e-mail</dt><dd><a data-mail href="#" data-t="email"></a></dd></div>
@@ -58,9 +71,9 @@
 
     <!-- ───────── Index ───────── -->
     <section class="page index" id="index">
-      <h2 class="slab-h reveal">Index</h2>
+      <h2 class="label reveal">Index</h2>
       <div class="index-list reveal">
-        <h3 class="slab-h">Work</h3>
+        <h3 class="label">Work</h3>
         <ol id="work-index"></ol>
       </div>
     </section>
@@ -70,8 +83,8 @@
 
     <!-- ───────── Contact ───────── -->
     <section class="page contact" id="contact">
-      <div class="page-top reveal"><h2 class="slab-h">Contact</h2><span><span data-t="name"></span> Portfolio</span></div>
-      <p class="hand thanks" data-write="view">Thank you</p>
+      <div class="page-top reveal"><h2 class="label">Contact</h2><span><span data-t="name"></span> Portfolio</span></div>
+      <p class="display thanks reveal">Thank you</p>
       <dl class="id-list reveal">
         <div><dt>e-mail</dt><dd><a data-mail href="#" data-t="email"></a></dd></div>
       </dl>

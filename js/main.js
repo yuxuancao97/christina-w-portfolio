@@ -4,6 +4,9 @@
   const D = window.PORTFOLIO, Art = window.Art;
   const root = document.documentElement;
   root.classList.add('js');
+  // Always open at the cover (or at the section a link names), never where a refresh left off.
+  try { history.scrollRestoration = 'manual'; } catch (e) {}
+  if (!location.hash) window.scrollTo({ top: 0, behavior: 'instant' });
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const esc = Art.esc;
@@ -27,7 +30,7 @@
     ['Skills', P.skills],
     ['Certificates', P.certificates]
   ].filter(([, rows]) => rows && rows.length).map(([h, rows]) =>
-    `<section class="rs reveal"><h3 class="hand">${esc(h)}</h3>` + rows.map(([k, v]) =>
+    `<section class="rs reveal"><h3 class="display">${esc(h)}</h3>` + rows.map(([k, v]) =>
       `<div class="rs-row"><span class="k${tag(k) ? ' tag' : ''}">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('') +
     `</section>`).join('');
 
@@ -201,6 +204,47 @@
     if (e.key === 'ArrowLeft') show(cur.i - 1);
   });
 
+  /* ── Feature band: headline, facts and a moving strip of one chapter's pieces ── */
+  const F = D.feature, seasCh = F && D.work.find(c => c.id === F.from);
+  if (seasCh) {
+    $$('[data-f]').forEach(el => { if (F[el.dataset.f] != null) el.textContent = F[el.dataset.f]; });
+    $('#seas-facts').innerHTML = metaHTML(F.facts || []) +
+      `<div><dt>Full work</dt><dd><a href="#work-${esc(seasCh.id)}">${pad2(D.work.indexOf(seasCh) + 1)}. ${esc(seasCh.title)} ↓</a></dd></div>`;
+
+    // the opening module of each product page, with the other pieces dealt in between
+    const openers = [], pieces = [];
+    seasCh.groups.forEach(g => {
+      if (g.layout === 'pages') {
+        g.items.forEach(a => {
+          const html = apMods(a)[0], vb = /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(html);
+          openers.push({ html, ratio: vb ? vb[1] / vb[2] : 0, isImg: !!a.modules, title: a.title, work: g.title });
+        });
+      } else {
+        g.items.forEach((it, k) => pieces.push({
+          html: pieceMedia(it, g, seasCh, k), ratio: ratioOf(it)[0] / ratioOf(it)[1], isImg: !!it.image, title: nameOf(it), work: g.title
+        }));
+      }
+    });
+    const strip = [];
+    while (openers.length || pieces.length) {
+      if (openers.length) strip.push(openers.shift());
+      strip.push(...pieces.splice(0, 2));
+    }
+    groups.seas = strip.map(x => ({
+      ratio: x.ratio || 2, isImg: x.isImg, html: () => x.html,
+      kicker: seasCh.title, title: x.title, meta: [['Work', x.work], ['Period', seasCh.years]]
+    }));
+    // two copies in a row make the loop seamless; the second is hidden from keyboards and screen readers
+    const stripHTML = copy => strip.map((x, i) =>
+      `<button class="s-item" type="button" data-group="seas" data-i="${i}"${x.ratio ? ` style="aspect-ratio:${x.ratio.toFixed(4)}"` : ''}` +
+      ` aria-label="${esc(x.title)}"${copy ? ' tabindex="-1" aria-hidden="true"' : ''}>${x.html}</button>`).join('');
+    const track = $('#seas-track');
+    track.innerHTML = stripHTML(false) + stripHTML(true);
+    track.style.setProperty('--dur', Math.max(40, strip.length * 7) + 's');
+  } else {
+    $('#seas').hidden = true;
+  }
+
   /* ── Handwriting ─────────────────────────────────────────────
      A line is uncovered letter by letter with a soft, slanted edge, paced like a pen:
      wide letters take longer, each letter speeds up and slows down, and there is a
@@ -294,9 +338,12 @@
 
     // scroll-driven lines: the pen follows the scroll, easing to catch up, and never un-writes
     const scrolled = writers.filter(w => w.mode === 'scroll' || w.mode === 'pin');
-    let ticking = false;
-    const follow = () => {
+    let ticking = false, prevT = 0;
+    const follow = now => {
       let moving = false;
+      // measured in real time, so the pen moves the same on a slow screen as on a fast one
+      const dt = prevT ? Math.min(64, now - prevT) : 16;
+      prevT = now;
       const vh = window.innerHeight, pp = pinProgress();
       // the menu appears once the signature is done and steps back if the reader returns to the cover
       root.classList.toggle('intro-done', pp > 0.8);
@@ -304,11 +351,17 @@
         const r = w.el.getBoundingClientRect();
         const at = w.mode === 'pin' ? pp / 0.7 : (vh * 0.9 - r.top) / (vh * 0.4 + r.height);
         w.target = Math.max(w.target, clamp01(at));
-        if (w.target - w.shown > 0.0015) { w.shown += (w.target - w.shown) * 0.085; w.draw(w.shown); moving = true; }
-        else if (w.shown !== w.target) { w.shown = w.target; w.draw(w.shown); }
+        const gap = w.target - w.shown;
+        if (gap > 0.0015) {
+          // ease towards where the scroll is, but never faster than a hand could write the line
+          const ease = gap * (1 - Math.exp(-dt / 170)), fastest = dt / (350 + w.n * 80);
+          w.shown += Math.min(ease, fastest);
+          w.draw(w.shown);
+          moving = true;
+        } else if (gap > 0) { w.shown = w.target; w.draw(w.shown); }
       });
       ticking = moving;
-      if (moving) requestAnimationFrame(follow);
+      if (moving) requestAnimationFrame(follow); else prevT = 0;
     };
     const kick = () => { if (!ticking) { ticking = true; requestAnimationFrame(follow); } };
     window.addEventListener('scroll', kick, { passive: true });
@@ -351,5 +404,12 @@
     $$('main section[id]').forEach(s => spy.observe(s));
   } else {
     $$('.reveal').forEach(el => el.classList.add('in'));
+  }
+
+  // a link to a section (#resume, #work-…) lands there once the page is built; anything else lands at the top
+  if (location.hash) {
+    let to = null;
+    try { to = document.querySelector(location.hash); } catch (e) {}
+    if (to) to.scrollIntoView({ behavior: 'instant' }); else window.scrollTo({ top: 0, behavior: 'instant' });
   }
 })();

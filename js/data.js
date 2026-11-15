@@ -150,7 +150,7 @@ window.PORTFOLIO = {
     span: '2020 - 2025 Portfolio',
     email: 'hello@example.com',
     socials: [],
-    /* Handwritten lines. Sample wording: replace with her own. */
+    /* `cover` is the handwritten signature on the opening screen. `hello` and `bio` are sample wording. */
     cover: 'Christina W',
     hello: 'Hello, I design brand visuals, Amazon store content, packaging & posters.',
     bio: 'I have a degree in Visual Communication Design. Since 2020 I have worked in-house for brands in automotive electronics, fitness and cross-border e-commerce.',
@@ -169,6 +169,19 @@ window.PORTFOLIO = {
       ['CET-6', 'College English Test, Band 6'],
       ['CET-4', 'College English Test, Band 4']
     ]
+  },
+
+  /* Feature band near the top: a headline, a line of text, a few facts and a moving
+     strip of pieces. `from` is the id of the chapter whose work fills the strip. */
+  feature: {
+    lead: 'Take your brand',
+    accent: 'across the seas',
+    text: 'Product pages, listing imagery, packaging and sale campaigns for brands selling overseas on Amazon.',
+    facts: [
+      ['Platform', 'Amazon'],
+      ['Work', 'Product pages, listing images, packaging, promotions']
+    ],
+    from: 'sainuoweier'
   },
 
   work: [
