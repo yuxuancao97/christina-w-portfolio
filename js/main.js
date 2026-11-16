@@ -26,7 +26,7 @@
   const tag = k => /^[A-Z][a-z]$/.test(k); // Ps, Ai: drawn as a small app badge
   $('#resume-body').innerHTML = [
     ['Education', P.education],
-    ['Experience', D.work.map(ch => [ch.years, `${ch.title}, ${ch.role}`])],
+    ['Experience', P.experience],
     ['Skills', P.skills],
     ['Certificates', P.certificates]
   ].filter(([, rows]) => rows && rows.length).map(([h, rows]) =>
@@ -34,7 +34,14 @@
       `<div class="rs-row"><span class="k${tag(k) ? ' tag' : ''}">${esc(k)}</span><span class="v">${esc(v)}</span></div>`).join('') +
     `</section>`).join('');
 
-  const img = (src, alt) => `<img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async">`;
+  const helloFacts = $('#hello-facts');
+  if (helloFacts) helloFacts.innerHTML = (P.facts || []).map(m => `<div><dt>${esc(m[0])}</dt><dd>${esc(m[1])}</dd></div>`).join('');
+
+  const img = (src, alt, cls) => `<img src="${esc(src)}" alt="${esc(alt)}"${cls ? ` class="${cls}"` : ''} loading="lazy" decoding="async">`;
+  // pictures fade in as they arrive (load does not bubble, so it is caught on the way down)
+  const arrived = e => { if (e.target.tagName === 'IMG') e.target.classList.add('is-in'); };
+  document.addEventListener('load', arrived, true);
+  document.addEventListener('error', arrived, true);
 
   /* ── Work: one chapter per role, each holding groups of pieces ── */
   const nameOf = it => it.title || it.label;
@@ -42,7 +49,7 @@
 
   // A piece's own image if it has one, otherwise a generated placeholder.
   const pieceMedia = (it, g, ch, k) => {
-    if (it.image) return img(it.image, `${nameOf(it)}, ${ch.title}`);
+    if (it.image) return img(it.image, `${nameOf(it)}, ${ch.title}`, it.tall ? 'from-top' : '');
     const [a, b] = ratioOf(it), r = a / b, art = it.art || g.art || ['orb', 'paper'];
     const spec = { title: nameOf(it), client: ch.title, year: ch.short || ch.years, style: art[0], palette: art[1], glyph: it.glyph || g.glyph, seed: g.title + nameOf(it) + k };
     return r >= 1 ? Art.poster(spec, 600 * r, 600) : Art.poster(spec, 600, 600 / r);
@@ -58,9 +65,14 @@
 
   /* Rows for a group of pieces. The first wide piece leads at full width; the rest are
      packed into rows that each fill the width at one shared height. Returns index lists. */
-  const layoutRows = items => {
+  const layoutRows = (items, cols) => {
     const r = i => ratioOf(items[i])[0] / ratioOf(items[i])[1];
     const all = items.map((_, i) => i);
+    if (cols) { // even rows of a set number of pieces
+      const even = [];
+      for (let i = 0; i < all.length; i += cols) even.push({ idxs: all.slice(i, i + cols), sum: 9 });
+      return even;
+    }
     const hero = all.find(i => r(i) >= 1.5);
     const rows = hero == null ? [] : [[hero]];
     let row = [], sum = 0;
@@ -90,9 +102,10 @@
     groups[key] = g.items.map((it, k) => ({
       ratio: ratioOf(it)[0] / ratioOf(it)[1], isImg: !!it.image, html: () => pieceMedia(it, g, ch, k),
       kicker: ch.title, title: nameOf(it), note: it.note,
-      meta: [['Role', ch.role], ['Period', ch.years], ['Work', g.title]]
+      page: !!it.tall,
+      meta: [['Project', ch.title], ['Work', g.title], ['Date', ch.years]]
     }));
-    const rows = layoutRows(g.items).map(({ idxs, sum }) =>
+    const rows = layoutRows(g.items, g.cols).map(({ idxs, sum }) =>
       `<div class="m-row">` + idxs.map(k => {
         const [a, b] = ratioOf(g.items[k]);
         return `<button class="m-item" type="button" data-group="${key}" data-i="${k}" style="--r:${(a / b).toFixed(4)};aspect-ratio:${a}/${b}" aria-label="${esc(nameOf(g.items[k]))}">${pieceMedia(g.items[k], g, ch, k)}</button>`;
@@ -100,32 +113,47 @@
       // a short row of upright pieces stays at a sensible height instead of filling the width
       (sum < 1.5 ? `<span class="m-fill" style="flex:${(2.4 - sum).toFixed(3)} 1 0%"></span>` : '') +
       `</div>`).join('');
-    return `<div class="grp"><div class="grp-head"><h3>${esc(g.title)}</h3></div><div class="mosaic reveal">${rows}</div></div>`;
+    return `<div class="grp"><div class="grp-head"><h3>${esc(g.title)}</h3>${g.text ? `<p class="grp-text">${esc(g.text)}</p>` : ''}</div><div class="mosaic reveal">${rows}</div></div>`;
   };
 
+  const tint = ch => ch.accent ? ` style="--c:${esc(ch.accent)}"` : '';
   $('#chapters').innerHTML = D.work.map((ch, ci) =>
-    `<section class="chapter" id="work-${esc(ch.id)}">` +
+    `<section class="chapter" id="work-${esc(ch.id)}"${tint(ch)}>` +
       `<div class="panel cover-panel">` +
-        `<div class="panel-top"><span>${pad2(ci + 1)}. ${esc(ch.title)}</span><span>${esc(ch.industry)}</span></div>` +
+        `<div class="panel-top"><span><i class="dot"></i>${pad2(ci + 1)}. ${esc(ch.title)}</span><span>${esc(ch.kind || '')}</span></div>` +
         `<h2 class="wordmark reveal" style="--n:${(ch.mark || ch.title).length}" aria-label="${esc(ch.title)}">${esc(ch.mark || ch.title)}</h2>` +
         `<dl class="panel-meta">` +
           `<div><dt>Overview</dt><dd>${esc(ch.summary)}</dd></div>` +
-          `<div><dt>Date</dt><dd>${esc(ch.years)}</dd></div>` +
-          `<div><dt>Role</dt><dd>${esc(ch.role)}</dd></div>` +
-          (ch.credits ? `<div><dt>Credits</dt><dd>${ch.credits.map(c => `${esc(c[0])}: ${esc(c[1])}`).join('<br>')}</dd></div>` : '') +
+          (ch.facts || []).map(f => `<div><dt>${esc(f[0])}</dt><dd>${esc(f[1])}</dd></div>`).join('') +
         `</dl>` +
       `</div>` +
       ch.groups.map((g, gi) => groupHTML(g, gi, ch)).join('') +
     `</section>`).join('');
 
-  /* Index: the roles at a glance, each linking to its chapter */
+  /* Index: the projects at a glance, each linking to its chapter. The picture beside
+     the list follows the row under the pointer, or the focused one. */
+  const countOf = ch => ch.groups.reduce((n, g) => n + g.items.length, 0);
   $('#work-index').innerHTML = D.work.map((ch, i) =>
-    `<li><a href="#work-${esc(ch.id)}">` +
+    `<li><a href="#work-${esc(ch.id)}" data-peek="${i}"${tint(ch)}>` +
       `<span class="n">${pad2(i + 1)}.</span>` +
       `<span class="t">${esc(ch.title)}</span>` +
-      `<span class="d">${esc(ch.industry)}</span>` +
-      `<span class="y">${esc(ch.years)}</span>` +
+      `<span class="d">${esc(ch.kind || '')}</span>` +
+      `<span class="y">${pad2(countOf(ch))} pieces</span>` +
     `</a></li>`).join('');
+  const peek = $('#index-peek');
+  if (peek) {
+    peek.innerHTML = D.work.map((ch, i) => ch.cover ? `<img src="${esc(ch.cover)}" alt="" data-peek="${i}" decoding="async">` : '').join('') +
+      `<figcaption></figcaption>`;
+    const showPeek = i => {
+      $$('img', peek).forEach(im => im.classList.toggle('on', +im.dataset.peek === i));
+      $$('#work-index a').forEach(a => a.classList.toggle('on', +a.dataset.peek === i));
+      $('figcaption', peek).textContent = `${pad2(i + 1)} / ${D.work[i].title}`;
+    };
+    const fromRow = e => { const a = e.target.closest('a[data-peek]'); if (a) showPeek(+a.dataset.peek); };
+    $('#work-index').addEventListener('pointerover', fromRow);
+    $('#work-index').addEventListener('focusin', fromRow);
+    showPeek(0);
+  }
 
   /* ── Product pages: pick one, see every module at full size ── */
   pageMounts.forEach(({ key, items }) => {
@@ -169,6 +197,7 @@
     lb.classList.toggle('is-page', !!it.page);
     lbMedia.classList.toggle('is-img', !!it.isImg);
     lbMedia.style.setProperty('--r', it.ratio || 1);
+    lbMedia.style.setProperty('--page-w', it.page && it.isImg ? '680px' : '970px'); // a long poster scrolls at its own width
     lbMedia.innerHTML = it.html();
     $('.lb-count', lb).textContent = `${pad2(cur.i + 1)} / ${pad2(n)}`;
     $('.lb-kicker', lb).textContent = it.kicker || '';
@@ -220,7 +249,7 @@
           openers.push({ html, ratio: vb ? vb[1] / vb[2] : 0, isImg: !!a.modules, title: a.title, work: g.title });
         });
       } else {
-        g.items.forEach((it, k) => pieces.push({
+        g.items.forEach((it, k) => it.reel !== false && !it.tall && pieces.push({
           html: pieceMedia(it, g, seasCh, k), ratio: ratioOf(it)[0] / ratioOf(it)[1], isImg: !!it.image, title: nameOf(it), work: g.title
         }));
       }
@@ -232,7 +261,7 @@
     }
     groups.seas = strip.map(x => ({
       ratio: x.ratio || 2, isImg: x.isImg, html: () => x.html,
-      kicker: seasCh.title, title: x.title, meta: [['Work', x.work], ['Period', seasCh.years]]
+      kicker: seasCh.title, title: x.title, meta: [['Project', seasCh.title], ['Work', x.work], ['Date', seasCh.years]]
     }));
     // two copies in a row make the loop seamless; the second is hidden from keyboards and screen readers
     const stripHTML = copy => strip.map((x, i) =>

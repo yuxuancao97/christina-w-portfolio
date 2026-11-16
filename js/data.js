@@ -1,159 +1,54 @@
 /* ─────────────────────────────────────────────────────────────
    ALL PORTFOLIO CONTENT LIVES IN THIS FILE.
 
-   The page follows Christina's CV: one chapter per role, newest
-   first, and inside each chapter one group per kind of work.
+   The work is a selection from the 2025 portfolio (52 pages), one
+   chapter per project, and inside each chapter one group per kind
+   of work. Images are in images/work/.
 
-   Profile and chapter text come from the CV. Her birth date, height
-   and legal name are left out on purpose. The email is a placeholder.
-   Every piece is still a generated placeholder.
+   Her legal name, phone number, birth date and personal email are
+   left out on purpose. The email below is a placeholder.
 
-   Adding the real work
+   Editing
    • A piece in a group:
-       { label: 'Booth backdrop', ratio: [3, 1], image: 'images/…jpg' }
-     `ratio` is the image's [width, height] (default [5, 7]).
-     The first wide piece in a group leads at full width, so pick 5 to 8
-     strong pieces per group over showing everything.
-   • `credits` on a chapter: who did what. Add photography, 3D or copy by
-     others here so her own part is clear.
-   • A product page in a 'pages' group:
-       { title: '…', brand: '…', marketplace: 'A+ content', year: '…',
-         summary: '…', modules: ['images/aplus/x/01.jpg', …] }
-     one image per content module, top to bottom.
-     Optional: role: '…', result: '…'
+       { label: 'Booth backdrop', ratio: [3, 1], image: 'images/work/….webp', note: '…' }
+     `ratio` is the size the tile is shown at, [width, height].
+     `note` shows beside the piece in the viewer.
+     `tall: true` for a long poster: the tile shows its top, the viewer scrolls it.
+     `reel: false` keeps a piece out of the moving strip near the top.
+   • A group: the first wide piece leads at full width and the rest are
+     packed into rows. `cols: 2` (or 3) lays the pieces out in even rows
+     of that many instead. `text` is the line beside the group's title.
+   • A chapter: `accent` is its colour, `cover` the image shown for it in
+     the index, `facts` three [label, value] rows on its opening panel.
 
-   Placeholders are drawn from `art: [style, palette]`.
-     styles:   orb · arcs · dots · glyph · bands · blocks · rays · lines
-     palettes: paper · cobalt · forest · rose · noir · lilac · tang ·
-               sand · mint · oxblood · sky · butter
+   A piece without an `image` is drawn as a placeholder from
+   `art: [style, palette]` (see js/art.js).
    ───────────────────────────────────────────────────────────── */
 
-/* Sample product pages: the artwork and the copy inside it are generated. */
-const SAMPLE_PAGES = [
-  {
-    title: 'Product page 01',
-    brand: 'Amazon store',
-    category: 'Sample layout',
-    marketplace: 'A+ content',
-    year: '2020/21',
-    summary: 'Product imagery and text for an Amazon listing.',
-    product: 'bottle', palette: 'apricot', style: 'arcs',
-    copy: {
-      headline: 'Glow that gets up early.',
-      sub: '15% vitamin C serum with ferulic acid, for brighter skin in four weeks.',
-      badge: 'New formula',
-      features: [
-        ['Brightens', 'Fades dullness and evens out skin tone.'],
-        ['Protects', 'Antioxidants shield skin from daily stress.'],
-        ['Absorbs fast', 'Light texture, no sticky finish under SPF.']
-      ],
-      story: { head: 'Made in small batches.', body: 'Vitamin C loses strength once it meets air. We bottle weekly in amber glass so every drop arrives as potent as the day it was made.' },
-      statement: 'Good skin is a morning habit.',
-      compare: {
-        title: 'Find your serum',
-        cols: ['Glow C', 'Calm B5', 'Night A'],
-        rows: [['Brightening', 1, 0, 1], ['Sensitive skin', 1, 1, 0], ['Daily use', 1, 1, 0], ['Fragrance free', 1, 1, 1]]
-      },
-      steps: [['Cleanse', 'Start with a clean, dry face.'], ['Apply', 'Press three drops into skin.'], ['Protect', 'Follow with moisturiser and SPF.']]
-    }
-  },
-  {
-    title: 'Product page 02',
-    brand: 'Amazon store',
-    category: 'Sample layout',
-    marketplace: 'A+ content',
-    year: '2020/21',
-    summary: 'Product imagery and text for an Amazon listing.',
-    product: 'jar', palette: 'matcha', style: 'orb',
-    copy: {
-      headline: 'A calmer kind of energy.',
-      sub: 'First-harvest ceremonial matcha, stone-ground in small lots in Uji.',
-      badge: 'First harvest',
-      features: [
-        ['Shade grown', 'Three weeks under cover for a sweeter leaf.'],
-        ['Stone ground', 'Milled slowly to keep colour and aroma.'],
-        ['Nothing added', 'One ingredient. No sugar, no fillers.']
-      ],
-      story: { head: 'From one family farm.', body: 'We buy the whole spring harvest from a single grower, which means we can tell you the field, the week and the hands that picked your tin.' },
-      statement: 'Whisk. Breathe. Begin.',
-      compare: {
-        title: 'Choose your grade',
-        cols: ['Ceremonial', 'Daily', 'Culinary'],
-        rows: [['Drink straight', 1, 1, 0], ['Lattes', 1, 1, 1], ['Baking', 0, 0, 1], ['First harvest', 1, 0, 0]]
-      },
-      stepsTitle: 'How to prepare',
-      steps: [['Sift', 'One teaspoon through a fine sieve.'], ['Whisk', 'Add 70 ml hot water and whisk in a W.'], ['Enjoy', 'Drink straight or top with milk.']]
-    }
-  },
-  {
-    title: 'Product page 03',
-    brand: 'Amazon store',
-    category: 'Sample layout',
-    marketplace: 'A+ content',
-    year: '2020/21',
-    summary: 'Product imagery and text for an Amazon listing.',
-    product: 'can', palette: 'glacier', style: 'lines',
-    copy: {
-      headline: 'Cold for 24. Hot for 12.',
-      sub: 'Double-wall steel flask built for long days out and the commute back.',
-      badge: '750 ml',
-      features: [
-        ['Leakproof', 'A quarter-turn lid that stays shut in a bag.'],
-        ['Fits holders', 'Slim base sits in car and bike cages.'],
-        ['Built to last', 'Powder coat that shrugs off scuffs.']
-      ],
-      story: { head: 'Tested north of the circle.', body: 'Every flask is filled, frozen and dropped before it ships. If it survives a winter in Tromsø, it will survive your desk.' },
-      statement: 'Take the long way home.',
-      compare: {
-        title: 'Pick your size',
-        cols: ['Trail 750', 'City 500', 'Summit 1L'],
-        rows: [['Cup holder fit', 1, 1, 0], ['24 h cold', 1, 0, 1], ['Carry loop', 1, 0, 1], ['Dishwasher safe', 1, 1, 1]]
-      },
-      stepsTitle: 'Care',
-      steps: [['Rinse', 'Warm water before first use.'], ['Fill', 'Leave a finger of space below the rim.'], ['Seal', 'Quarter turn until it clicks.']]
-    }
-  },
-  {
-    title: 'Product page 04',
-    brand: 'Amazon store',
-    category: 'Sample layout',
-    marketplace: 'A+ content',
-    year: '2020/21',
-    summary: 'Product imagery and text for an Amazon listing.',
-    product: 'pouch', palette: 'roast', style: 'dots',
-    copy: {
-      headline: 'Roasted Monday. Yours by Friday.',
-      sub: 'A sweet, round house blend with notes of cocoa, hazelnut and orange peel.',
-      badge: 'Whole bean',
-      features: [
-        ['Roast to order', 'Nothing sits on a shelf for months.'],
-        ['Traceable', 'Two farms, named on every bag.'],
-        ['Any brewer', 'Forgiving in espresso, filter or press.']
-      ],
-      story: { head: 'Paid fairly, roasted lightly.', body: 'We pay growers well above market price and roast just far enough to let their work speak. The result is a cup that tastes like where it came from.' },
-      statement: 'First light, first cup.',
-      compare: {
-        title: 'Explore the roasts',
-        cols: ['House', 'Bright', 'Dark'],
-        rows: [['Espresso', 1, 0, 1], ['Filter', 1, 1, 0], ['With milk', 1, 0, 1], ['Fruity notes', 0, 1, 0]]
-      },
-      stepsTitle: 'Brew guide',
-      steps: [['Grind', 'Medium-fine, right before brewing.'], ['Bloom', 'Wet the grounds and wait 30 seconds.'], ['Pour', 'Slow circles until you reach 250 ml.']]
-    }
-  }
-];
+const W = 'images/work/';
+const WIDE = [16, 9];
 
 window.PORTFOLIO = {
   profile: {
     name: 'Christina W',
-    role: 'Visual designer',
+    role: 'Visual communication designer',
     span: '2020 - 2025 Portfolio',
     email: 'hello@example.com',
     socials: [],
-    /* `hello` and `bio` are sample wording. The signature on the cover lives in js/signature.js. */
-    hello: 'Hello, I design brand visuals, Amazon store content, packaging & posters.',
-    bio: 'I have a degree in Visual Communication Design. Since 2020 I have worked in-house for brands in automotive electronics, fitness and cross-border e-commerce.',
-    /* Resume rows: [left, right]. Experience is filled in from `work` below. */
+    /* The signature on the cover lives in js/signature.js. */
+    hello: 'Hello, I design brand identities, digital campaigns, characters & packaging.',
+    bio: 'I am a visual communication design graduate with a foundation in fine art and four and a half years of in-house experience. I build cohesive visual systems that carry each brand’s character, from the logo to the last exhibition panel.',
+    facts: [
+      ['Experience', '4.5 years, in-house'],
+      ['Sectors', 'Automotive electronics, fitness, cross-border e-commerce'],
+      ['Off duty', 'Reading, photography, singing']
+    ],
+    /* Resume rows: [left, right]. */
+    experience: [
+      ['2023.04 - 2025.01', 'Kunyi Electronic Technology (Shanghai), Graphic Designer'],
+      ['2022.01 - 2023.04', 'Shuhua Sports, Graphic Designer'],
+      ['2020.04 - 2021.12', 'Sainuoweier Technology, Graphic Designer']
+    ],
     education: [
       ['2014.09 - 2018.06', 'Jincheng College, BA Visual Communication Design'],
       ['2014 - 2018', 'Scholarship in each of the four years']
@@ -161,8 +56,9 @@ window.PORTFOLIO = {
     skills: [
       ['Ps', 'Photoshop'],
       ['Ai', 'Illustrator'],
+      ['C4D', 'Cinema 4D, character modelling'],
       ['Design', 'Visual identity, layout, typeface, packaging'],
-      ['Also', 'Advertising, photography']
+      ['Also', 'Illustration, advertising, photography']
     ],
     certificates: [
       ['CET-6', 'College English Test, Band 6'],
@@ -175,132 +71,275 @@ window.PORTFOLIO = {
   feature: {
     lead: 'Take your brand',
     accent: 'across the seas',
-    text: 'Product pages, listing imagery, packaging and sale campaigns for brands selling overseas on Amazon.',
+    text: 'Brand websites, product detail pages and sale campaigns for brands selling to customers overseas.',
     facts: [
-      ['Platform', 'Amazon'],
-      ['Work', 'Product pages, listing images, packaging, promotions']
+      ['Channels', 'Brand website, marketplace listings, social'],
+      ['Work', 'Key visuals, category pages, feature graphics, promotions']
     ],
-    from: 'sainuoweier'
+    from: 'vivosun'
   },
 
   work: [
+    /* ───────── 01 ───────── */
     {
       id: 'kunyi',
-      title: 'Kunyi Electronic Technology',
-      industry: 'Automotive electronics',
-      role: 'Graphic Designer',
-      years: '2023.04 - 2025.01', short: '2023/25', mark: 'Kunyi',
-      credits: [['Visual design', 'Christina W']],
-      summary: 'Overall responsibility for the brand’s visual design and presentation, in print, online and at domestic and international exhibitions.',
+      title: 'KUNYI', mark: 'Kunyi',
+      kind: 'Brand identity',
+      accent: '#ff5a1f',
+      cover: W + 'kunyi-identity.webp',
+      years: '2023.04 - 2025.01',
+      summary: 'Rooted in electronics, driven by R&D, moving toward the future. A new mark for Kunyi Electronic Technology, carried through product literature, corporate-culture walls and the materials for exhibitions and user conferences at home and abroad.',
+      facts: [
+        ['Sector', 'Automotive electronics'],
+        ['Date', '2023.04 - 2025.01'],
+        ['Role', 'Graphic designer, leading brand visual design']
+      ],
       groups: [
         {
-          title: 'Exhibitions & workshops', layout: 'rows', art: ['rays', 'cobalt'],
+          title: 'Identity',
+          text: 'Electronic-component forms and technology-inspired blocks, with the initials K and Y built into the mark.',
           items: [
-            { label: 'Booth backdrop', ratio: [3, 1] },
-            { label: 'Roll-up banner', ratio: [2, 5] },
-            { label: 'Exhibition poster', ratio: [5, 7] },
-            { label: 'Workshop poster', ratio: [5, 7] },
-            { label: 'Screen graphic', ratio: [16, 9] }
+            { label: 'Identity concept', ratio: WIDE, image: W + 'kunyi-identity.webp', note: 'The logo combines electronic-component forms with technology-inspired blocks to create a memorable symbol that reflects the industry. The initials K and Y are integrated into the mark to make it distinctive to KUNYI.' },
+            { label: 'Logo construction', ratio: WIDE, image: W + 'kunyi-construction.webp', note: 'Geometric construction and proportional guidelines for the identity.' },
+            { label: 'AD Station Pro key visual', ratio: WIDE, image: W + 'kunyi-adstation.webp', note: 'Key visual for the autonomous-driving data-processing workstation.' }
           ]
         },
         {
-          title: 'Product brochures', layout: 'rows', art: ['blocks', 'paper'],
+          title: 'Product literature',
+          text: 'Brochures and technical display panels for the autonomous-driving test range.',
           items: [
-            { label: 'Brochure cover', ratio: [5, 7] },
-            { label: 'Brochure spread', ratio: [10, 7] },
-            { label: 'Brochure spread', ratio: [10, 7] }
+            { label: 'AD Station 3000 Pro brochure', ratio: [1800, 921], image: W + 'kunyi-brochure.webp', note: 'Product literature for the AD Station 3000 Pro data-collection workstation.' },
+            { label: 'Cubestack display panel', ratio: [3, 4], tall: true, image: W + 'kunyi-poster-1.webp', note: 'Technical product display for the Cubestack cluster-testing system.' },
+            { label: 'ADS 4000 display panel', ratio: [3, 4], tall: true, image: W + 'kunyi-poster-2.webp', note: 'Technical product display for advanced autonomous-driving validation.' },
+            { label: 'Data-collection vehicle panel', ratio: [3, 4], tall: true, image: W + 'kunyi-poster-3.webp', note: 'Exhibition graphic for the intelligent-driving data-collection vehicle solution.' }
           ]
         },
         {
-          title: 'Website & WeChat official account', layout: 'rows', art: ['bands', 'sky'],
+          title: 'Culture wall & events',
+          text: 'Company history and culture graphics, and the brand across the 2024 user conference.',
           items: [
-            { label: 'Website banner', ratio: [16, 9] },
-            { label: 'WeChat visual', ratio: [1, 1] },
-            { label: 'WeChat visual', ratio: [4, 5] },
-            { label: 'Website banner', ratio: [3, 1] }
-          ]
-        },
-        {
-          title: 'Culture wall', layout: 'rows', art: ['lines', 'sand'],
-          items: [
-            { label: 'Culture wall', ratio: [4, 1] },
-            { label: 'Wall detail', ratio: [16, 9] }
+            { label: 'Corporate communications', ratio: WIDE, image: W + 'kunyi-corporate.webp', note: 'Company history, company profile and corporate-culture graphics.' },
+            { label: 'Events & printed collateral', ratio: WIDE, image: W + 'kunyi-events.webp', note: 'Brand applications across conferences, exhibitions and printed materials.' }
           ]
         }
       ]
     },
+
+    /* ───────── 02 ───────── */
     {
       id: 'shuhua',
-      title: 'Shuhua Sports',
-      industry: 'Fitness',
-      role: 'Graphic Designer',
-      years: '2022.01 - 2023.04', short: '2022/23', mark: 'Shuhua',
-      credits: [['Visual design', 'Christina W, working independently']],
-      summary: 'Independently produced the commercial visual design for the Shuhua Fitness sub-brand and its directly operated locations, from sampling and proofs to final production.',
+      title: 'Shuhua Fitness', mark: 'Shuhua Fitness',
+      kind: 'Brand identity & campaigns',
+      accent: '#3fe6c0',
+      cover: W + 'shuhua-brand.webp',
+      years: '2022.01 - 2023.04',
+      summary: 'The commercial visual system for the Shuhua Fitness sub-brand and its directly operated clubs: identity, supporting graphics, wayfinding, WeChat marketing and seasonal campaigns, taken from proofing through to delivery.',
+      facts: [
+        ['Sector', 'Fitness'],
+        ['Date', '2022.01 - 2023.04'],
+        ['Role', 'Graphic designer, working independently']
+      ],
       groups: [
         {
-          title: 'Visual identity', layout: 'rows', art: ['orb', 'tang'],
+          title: 'Visual identity',
+          text: 'An exercise heart-rate curve meets an extended form of the logo; rounded contours become running-track lines.',
           items: [
-            { label: 'Logo', ratio: [1, 1] },
-            { label: 'Colour and type', ratio: [16, 9] },
-            { label: 'Brand applications', ratio: [16, 9] }
+            { label: 'Brand applications', ratio: WIDE, image: W + 'shuhua-brand.webp', note: 'Visual marketing and branded fitness environments.' },
+            { label: 'Supporting graphics', ratio: WIDE, image: W + 'shuhua-graphics.webp', note: 'The supporting graphic combines an exercise heart-rate curve with an extended form of the logo. Rounded contours develop into running-track lines, linking the visual system to movement and fitness.' },
+            { label: 'Environmental wayfinding', ratio: WIDE, image: W + 'shuhua-wayfinding.webp', note: 'Signage for the strength, cardio, personal training and Pilates areas, the training camp, fitness assessment, members’ room and changing rooms.' }
           ]
         },
         {
-          title: 'Lightbox posters', layout: 'tiles',
+          title: 'Print & digital touchpoints',
+          text: 'Class schedules, promotional cards and the identity on screen.',
           items: [
-            { title: 'Lightbox poster 01', art: ['orb', 'cobalt'] },
-            { title: 'Lightbox poster 02', art: ['glyph', 'noir'] },
-            { title: 'Lightbox poster 03', art: ['arcs', 'butter'] },
-            { title: 'Lightbox poster 04', art: ['bands', 'tang'] }
+            { label: 'Touchpoints', ratio: [4, 3], image: W + 'shuhua-touchpoints.webp', note: 'Class schedules, promotional cards and mobile presentation of the identity.' },
+            { label: 'Class schedule & cards', ratio: [4, 3], image: W + 'shuhua-schedule.webp', note: 'Group class schedule, business cards and WeChat contact cards.' }
           ]
         },
         {
-          title: 'WeChat official account', layout: 'rows', art: ['dots', 'rose'],
+          title: 'Opening campaign',
+          text: 'Grand opening and calorie-challenge materials for a new club.',
           items: [
-            { label: 'Marketing visual', ratio: [1, 1] },
-            { label: 'Marketing visual', ratio: [4, 5] },
-            { label: 'Marketing visual', ratio: [9, 16] },
-            { label: 'Marketing visual', ratio: [1, 1] },
-            { label: 'Marketing visual', ratio: [4, 5] }
+            { label: 'Grand-opening poster', ratio: [1061, 1501], image: W + 'shuhua-opening-poster.webp', note: 'Grand-opening and calorie-challenge campaign poster.' },
+            { label: 'Calorie-challenge campaign kit', ratio: [1100, 1214], image: W + 'shuhua-opening-kit.webp', note: 'Key visual and long-form WeChat pages for the calorie challenge.' }
           ]
         },
         {
-          title: 'Brochures & event promotion', layout: 'rows', art: ['arcs', 'mint'],
+          title: 'Spring Festival 2023',
+          text: 'Seasonal fitness posters. Original lettering and layouts.',
           items: [
-            { label: 'Brochure cover', ratio: [5, 7] },
-            { label: 'Event banner', ratio: [3, 1] },
-            { label: 'Event poster', ratio: [5, 7] }
+            { label: 'Spring Festival poster 01', ratio: [845, 1501], image: W + 'shuhua-spring-1.webp' },
+            { label: 'Spring Festival poster 02', ratio: [845, 1501], image: W + 'shuhua-spring-2.webp' },
+            { label: 'Spring Festival poster 03', ratio: [845, 1501], image: W + 'shuhua-spring-3.webp' }
           ]
         }
       ]
     },
+
+    /* ───────── 03 ───────── */
     {
-      id: 'sainuoweier',
-      title: 'Sainuoweier Technology',
-      industry: 'Cross-border e-commerce',
-      role: 'Graphic Designer',
-      years: '2020.04 - 2021.12', short: '2020/21', mark: 'Sainuoweier',
-      credits: [['Product imagery and text', 'Christina W'], ['Packaging', 'Christina W']],
-      summary: 'Product imagery and text, packaging and promotions for the company’s Amazon store.',
+      id: 'vivosun',
+      title: 'VIVOSUN', mark: 'Vivosun',
+      kind: 'Digital & campaigns',
+      accent: '#3ddc55',
+      cover: W + 'vivosun-smart-grow.webp',
+      summary: 'A digital storefront for an indoor-growing brand: category pages, product presentation, feature graphics that explain the product at a glance, and the campaign visuals that bring shoppers in.',
+      facts: [
+        ['Sector', 'Cross-border e-commerce'],
+        ['Channels', 'Brand website, product pages, social'],
+        ['Work', 'Key visuals, page design, feature graphics']
+      ],
       groups: [
-        { title: 'Amazon product pages', layout: 'pages', items: SAMPLE_PAGES },
         {
-          title: 'Promotional posters & banners', layout: 'rows', art: ['glyph', 'butter'], glyph: '%',
+          title: 'Campaigns & social',
+          text: 'Hero visuals for the connected growing range, Black Friday, Prime Day and a follower giveaway.',
           items: [
-            { label: 'Storefront banner', ratio: [3, 1] },
-            { label: 'Promo poster', ratio: [4, 5] },
-            { label: 'Promo poster', ratio: [4, 5] },
-            { label: 'Campaign banner', ratio: [2, 1] },
-            { label: 'Listing image', ratio: [1, 1] }
+            { label: 'Smart Grow System', ratio: WIDE, image: W + 'vivosun-smart-grow.webp', note: 'Hero visual for the connected growing product range.' },
+            { label: 'Black Friday campaign', ratio: WIDE, image: W + 'vivosun-black-friday.webp', note: 'Promotional hero visual.' },
+            { label: '50K followers giveaway', ratio: [1, 1], image: W + 'vivosun-social-1.webp', note: 'Follower-giveaway visual for social.' },
+            { label: 'Lifestyle campaign', ratio: [1732, 1076], image: W + 'vivosun-lifestyle-2.webp', note: 'Indoor-growing product visual.' },
+            { label: 'Prime Day deals', ratio: [1, 1], image: W + 'vivosun-social-2.webp', note: 'Prime Day campaign visual.' }
           ]
         },
         {
-          title: 'Packaging', layout: 'rows', art: ['blocks', 'forest'],
+          title: 'Brand website',
+          text: 'Storefront and product-category pages: grow tents, grow lights, gardening, ventilation and aquarium.',
           items: [
-            { label: 'Kraft box', ratio: [4, 3] },
-            { label: 'Colour-printed carton', ratio: [4, 3] },
-            { label: 'Dieline', ratio: [16, 9] }
+            { label: 'Storefront & category pages', ratio: WIDE, image: W + 'vivosun-web-1.webp', note: 'Storefront and product-category page design.' },
+            { label: 'Category pages', ratio: WIDE, image: W + 'vivosun-web-2.webp', reel: false, note: 'Grow tents, grow lights, gardening and aquarium categories.' },
+            { label: 'Website & product pages', ratio: WIDE, image: W + 'vivosun-web-3.webp', reel: false, note: 'Digital storefront, lifestyle content and product presentation.' }
+          ]
+        },
+        {
+          title: 'Product detail pages',
+          text: 'Feature graphics: structure, mobility, materials, filtration, noise and airflow.',
+          items: [
+            { label: 'Sturdy design', ratio: [1, 1], image: W + 'vivosun-detail-1.webp', note: 'Feature graphic for a plant stand.' },
+            { label: 'Smooth-steering wheels', ratio: [1, 1], image: W + 'vivosun-detail-2.webp', note: 'Feature graphic for rotating, lockable wheels.' },
+            { label: 'Lightproof reflectivity', ratio: [1, 1], image: W + 'vivosun-detail-3.webp', note: 'Feature graphic for reflective fabric.' },
+            { label: 'Activated-carbon filtration', ratio: [1, 1], image: W + 'vivosun-detail-4.webp', note: 'Feature graphic for activated-carbon filtration.' },
+            { label: 'Low noise level', ratio: [1, 1], image: W + 'vivosun-detail-5.webp', note: 'Feature graphic for noise levels.' },
+            { label: 'Air freshing', ratio: [1, 1], image: W + 'vivosun-detail-6.webp', note: 'Feature graphic for airflow.' }
+          ]
+        }
+      ]
+    },
+
+    /* ───────── 04 ───────── */
+    {
+      id: 'retail',
+      title: 'Retail & packaging', mark: 'Retail & Packaging',
+      kind: 'Product presentation',
+      accent: '#f5b82e',
+      cover: W + 'retail-trampolines.webp',
+      summary: 'Outdoor and home products made ready for the shelf and the shipping bay: retail information graphics, product-range layouts, printed boxes and line-drawn shipping cartons.',
+      facts: [
+        ['Sector', 'Outdoor & home products'],
+        ['Formats', 'Retail graphics, colour boxes, kraft cartons'],
+        ['Work', 'Layout, information graphics, dielines']
+      ],
+      groups: [
+        {
+          title: 'Retail graphics',
+          text: 'Product-range graphics for trampolines and information graphics for sleeping bags.',
+          items: [
+            { label: 'Trampoline range', ratio: WIDE, image: W + 'retail-trampolines.webp', note: 'Retail product-range graphics and digital promotional layouts.' },
+            { label: 'Oversized flannel sleeping bag', ratio: [1100, 1420], image: W + 'retail-sleeping-1.webp', note: 'Product presentation and retail information graphics.' },
+            { label: '0°F sleeping bag', ratio: [1632, 1168], image: W + 'retail-sleeping-2.webp', note: 'Product presentation and retail information graphics.' }
+          ]
+        },
+        {
+          title: 'Packaging',
+          text: 'A printed colour box for a noodle maker and kraft shipping cartons for outdoor play equipment.',
+          items: [
+            { label: 'Noodle maker box', ratio: [1800, 719], image: W + 'pack-noodle.webp', note: 'Printed product-packaging layout.' },
+            { label: 'Trampoline cartons', ratio: WIDE, image: W + 'pack-carton-1.webp', note: 'Original shipping-carton graphics.' },
+            { label: 'Seesaw & slide cartons', ratio: WIDE, image: W + 'pack-carton-2.webp', note: 'Original shipping-carton graphics for a seesaw and slide.' }
+          ]
+        }
+      ]
+    },
+
+    /* ───────── 05 ───────── */
+    {
+      id: 'cici',
+      title: 'Cici & Pearl', mark: 'Cici & Pearl',
+      kind: 'Character design',
+      accent: '#ff7aa2',
+      cover: W + 'cici-collection.webp',
+      years: '2022',
+      summary: 'Cici is nine centimetres tall and curious about the world: gentle but determined, fond of travel and adventure, equally at home being active or quiet. Drawn, modelled in 3D and taken through to toy packaging, with Pearl, a retro girl in a qipao, alongside.',
+      facts: [
+        ['Type', 'Cartoon mascot & IP design'],
+        ['Date', '2022'],
+        ['Work', 'Character sheets, 3D models, expressions, packaging']
+      ],
+      groups: [
+        {
+          title: 'Cici',
+          text: 'Cartoon mascot design, from the key visual to the toy on the shelf.',
+          items: [
+            { label: 'Cici key visual', ratio: WIDE, image: W + 'cici-hero.webp', note: 'Cartoon mascot design. The character name on the original artwork is retained.' },
+            { label: 'Toy & packaging applications', ratio: WIDE, image: W + 'cici-toys.webp', note: 'Character models shown with their original packaging concepts.' },
+            { label: 'Collection', ratio: WIDE, image: W + 'cici-collection.webp', note: 'Three character variations presented together.' }
+          ]
+        },
+        {
+          title: '3D models',
+          text: 'Three variations, each in front, side and back views.',
+          cols: 3,
+          items: [
+            { label: '3D model, swim ring', ratio: WIDE, image: W + 'cici-3d-1.webp', note: 'Front, side and back views.' },
+            { label: '3D model, blue dress', ratio: WIDE, image: W + 'cici-3d-2.webp', note: 'Front, side and back views.' },
+            { label: '3D model, pink overalls', ratio: WIDE, image: W + 'cici-3d-3.webp', note: 'Front, side and back views.' }
+          ]
+        },
+        {
+          title: 'Character sheets',
+          text: 'Profiles, turnarounds and expression sets for Cici and Pearl.',
+          cols: 2,
+          items: [
+            { label: 'Cici character profile', ratio: WIDE, image: W + 'cici-profile.webp', note: 'A curious girl with a gentle but determined spirit. She loves travel and adventure, enjoys time alone, and is equally at home being active or quiet.' },
+            { label: 'Cici turnaround', ratio: WIDE, image: W + 'cici-turnaround.webp', note: 'Front, back and side views.' },
+            { label: 'Cici expression set', ratio: WIDE, image: W + 'cici-expressions.webp', note: 'Great job! Keep learning! Delicious! Wow! Haha! Let me think. Pretty please! Huh?' },
+            { label: 'Pearl character profile', ratio: WIDE, image: W + 'pearl-profile.webp', note: 'A retro girl who loves pearl necklaces and qipao dresses. She has a beautiful singing voice and is also a swing dancer. Playful and quirky, she is sensitive to the finer shades of emotion.' }
+          ]
+        }
+      ]
+    },
+
+    /* ───────── 06 ───────── */
+    {
+      id: 'illustration',
+      title: 'Illustration & book design', mark: 'Illustration',
+      kind: 'Illustration',
+      accent: '#5aa9ff',
+      cover: W + 'illo-go-wild.webp',
+      summary: 'Explorations away from the brand work: campaign illustration, a family of everyday objects, a piece shown from pen-tool paths to finished colour, and Whispers of the Solar Terms, a book of ink-wash illustrations.',
+      facts: [
+        ['Type', 'Illustration & editorial'],
+        ['Media', 'Vector, digital painting, ink wash'],
+        ['Work', 'Campaign artwork, icon sets, book design']
+      ],
+      groups: [
+        {
+          title: 'Illustration',
+          text: 'Campaign artwork, outdoor scenes and a coordinated set of objects.',
+          items: [
+            { label: 'Adventure campaign', ratio: WIDE, image: W + 'illo-adventure.webp', note: 'Original illustrated campaign artwork.' },
+            { label: 'Go Wild', ratio: WIDE, image: W + 'illo-go-wild.webp', note: 'Original outdoor-themed illustration.' },
+            { label: 'Everyday objects', ratio: WIDE, image: W + 'illo-objects.webp', note: 'A coordinated collection of stylized object illustrations.' },
+            { label: 'From linework to colour', ratio: WIDE, image: W + 'illo-linework.webp', note: 'Left: pen-tool paths. Right: finished colour artwork.' }
+          ]
+        },
+        {
+          title: 'Whispers of the Solar Terms',
+          text: 'Book design. Ink-wash illustrations inspired by China’s traditional solar terms.',
+          cols: 2,
+          items: [
+            { label: 'Book design', ratio: WIDE, image: W + 'book-solar-1.webp', note: 'Ink-wash illustrations inspired by elements of China’s traditional solar terms.' },
+            { label: 'Illustration series', ratio: WIDE, image: W + 'book-solar-2.webp', note: 'Book spreads and the original ink-wash illustrations.' }
           ]
         }
       ]
